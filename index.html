@@ -772,6 +772,33 @@ body.vopen .savebar{display:none}
 .bkpick input{position:absolute;inset:0;opacity:0;cursor:pointer}
 .bkpick svg.i{width:15px;height:15px}
 .stucv.story{aspect-ratio:1080/1920;max-width:300px;margin:0 auto;width:100%}
+.stucv.wide{aspect-ratio:1200/630}
+.ckrow{display:flex;gap:10px;align-items:flex-start;padding:8px 0;font-size:14px;line-height:1.5}
+.ckrow input{width:20px;height:20px;flex:none;margin-top:1px;accent-color:var(--pri)}
+.wsin .al small{display:block;color:var(--muted);font-size:12px;margin-bottom:2px}
+.wsgo{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.wsgo .btn{justify-content:center}
+.hcard .hhead{display:flex;gap:14px;align-items:center;margin-bottom:6px}
+.hcard h2{margin:0 0 2px}
+.hscore{position:relative;width:84px;height:84px;flex:none}
+.hscore .hring{width:100%;height:100%;display:block}
+.hscore b{position:absolute;inset:0;display:grid;place-items:center;font-size:20px;font-weight:800}
+.hlist{display:grid}
+.hrow{display:flex;gap:10px;align-items:flex-start;padding:11px 0;border-top:1px solid var(--line)}
+.hbody{flex:1;min-width:0;display:grid;gap:2px}
+.hbody b{font-size:14px}
+.hrow.ok .hbody b{color:var(--muted)}
+.hic,.hchk{width:28px;height:28px;flex:none;display:grid;place-items:center;border-radius:50%}
+.hic{background:var(--butter-soft);color:#A06C00}
+.hrow.ok .hic{background:var(--green-soft);color:var(--green)}
+.hchk{border-radius:9px;border:2px solid var(--line);background:var(--surface);color:#fff;padding:0}
+.hrow.ok .hchk{background:var(--green);border-color:var(--green)}
+.hic svg,.hchk svg{width:16px;height:16px}
+.hrow .btn.sm{flex:none;align-self:center}
+.cblk{border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin-top:10px;background:var(--surface2)}
+.cblk .sec{margin-bottom:6px;gap:8px}
+.cblk h3{font-size:13.5px;margin:0;flex:1}
+.ctext{font-size:13.5px;line-height:1.8;overflow-wrap:anywhere}
 .stuin{display:flex;gap:6px;align-items:center}.stuin svg.i{width:15px;height:15px;color:var(--acc)}
 .kits{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(84px,1fr);gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
 .kits::-webkit-scrollbar{display:none}
@@ -1512,7 +1539,7 @@ function longSentence(d){
 /* ================================================================ alerts & answers */
 function alerts(){
   const out=[];const L=ledger();const b=bals();const P=parties();
-  S.items.forEach(it=>{const st=L.st[it.id];if(!st||it.kind==="service")return;
+  S.items.forEach(it=>{const st=L.st[it.id];if(!st||it.kind==="service"||(!S.tx.length&&!(+it.oq>0)))return;
     if(st.qty<0)out.push([3,"bad","alert",`مخزون ${it.name} بالسالب (${nf(st.qty)}). سجّل الشراء أو الإنتاج الناقص أو سوّ جرد.`,"item",it.id,"stock"]);
     else if(st.qty===0&&(+it.min>0||S.tx.some(t=>t.item===it.id)))out.push([2,"warn","box",`${it.name} خلص من المخزون.`,"item",it.id,"stock"]);
     else if(+it.min>0&&st.qty<=+it.min)out.push([2,"warn","box",`${it.name} قرب يخلص: باقي ${nf(st.qty)} ${it.unit}.`,"item",it.id,"stock"]);
@@ -1653,7 +1680,8 @@ function vHome(){
   }
   if(can("orders")&&S.orders.length){const c=k=>S.orders.filter(o=>o.status===k).length;h+=`<section class="card"><div class="sec"><h2>الطلبات</h2><button class="link" data-a="tab" data-t="orders">كلها ${svg("cl")}</button></div><div class="ostrip">${["new","preparing","shipped","delivered"].map(k=>`<button data-a="ofilter" data-v="${k}"><b class="num">${c(k)}</b><span>${OST[k][0]}</span></button>`).join("")}</div></section>`}
   const al=alerts();
-  if(al.length)h+=`<section class="card"><div class="sec"><h2>${zh("تنبيهاتك")}</h2></div>${al.map(a=>`<button class="al" data-a="alert" data-k="${a[4]}" data-v="${esc(a[5])}">${ic(a[2],a[1]==="bad"?"c":a[1]==="warn"?"y":"s")}<p>${esc(a[3])}</p><span class="go">${svg("cl")}</span></button>`).join("")}</section>`;
+  const oal=A.order.length>1&&!UI.as?wsList().filter(w=>w.id!==S.id).reduce((n,w)=>n+wsPulse(w).al.filter(a=>a[0]>=2).length,0):0;
+  if(al.length||oal)h+=`<section class="card"><div class="sec"><h2>${zh("تنبيهاتك")}</h2></div>${al.map(a=>`<button class="al" data-a="alert" data-k="${a[4]}" data-v="${esc(a[5])}">${ic(a[2],a[1]==="bad"?"c":a[1]==="warn"?"y":"s")}<p>${esc(a[3])}</p><span class="go">${svg("cl")}</span></button>`).join("")}${oal?`<button class="al" data-a="tab" data-t="all">${ic("store","s")}<p>و${oal} ${oal===1?"تنبيه مهم":"تنبيهات مهمة"} في أنشطتك الثانية</p><span class="go">${svg("cl")}</span></button>`:""}</section>`;
   if(has&&can("reports")){
     const top=Object.entries(itemStats(inM(thisMonth()))).map(([id,x])=>[itemById(id),x]).filter(x=>x[0]).sort((a,z)=>(z[1].rev-z[1].cogs)-(a[1].rev-a[1].cogs))[0];
     const sug=[top?`كم ربحت من ${top[0].name}؟`:"وش أكثر منتج ربحني؟","مين عليه فلوس؟","وش أكبر مصاريفي؟"];
@@ -1718,14 +1746,15 @@ function vOrders(){
   let h=topBars()+band(`${topRow()}<div class="btitle">${zh("طلباتك")}</div><div class="bsub">${plats.length?plats.map(p=>`${PLATS[p].n}: ${linked(p)?"متصل":"غير متصل"}`).join(" · "):"الربط مع المنصات متاح في دول الخليج"}</div>`,true)+`<main class="view gut">`;
   if(!on.length&&plats.length)h+=`<section class="card"><div class="say">${mascot("happy",56)}<div class="bubble">اربط متجرك، وأي بيع تسجّله ينرسل طلب لـ${plats.map(p=>PLATS[p].n).join(" أو ")} مع الشحن، وطلبات المتجر تنزل هنا لحالها.</div></div>${can("links")?`<div class="btns" style="margin-top:12px">${plats.map(p=>`<button class="btn pri" data-a="link" data-p="${p}">${svg("link")} اربط ${PLATS[p].n}</button>`).join("")}</div>`:`<p class="hint" style="margin-top:8px">اطلب من المالك أو المحاسب يربط المتجر.</p>`}</section>`;
   if(on.length)h+=`<section class="card"><div class="btns"><button class="btn pri" data-a="pull">${svg("down")} اسحب الطلبات الجديدة</button>${canRecord("sale")?`<button class="btn" data-a="newOrder">${svg("plus")} طلب جديد</button>`:""}</div><p class="hint" style="margin-top:8px">تجريبي: السحب والإرسال محاكاة. في النسخة الكاملة يصير تلقائي.</p></section>`;
+  const cd=codStats();if(cd.n)h+=`<section class="card"><div class="kv"><span>رفض الاستلام (الدفع عند الاستلام)</span><span class="tag ${cd.rate>.1?"bad":"good"} num">${Math.round(cd.rate*100)}% · ${cd.r} من ${cd.n}</span></div>${cd.rate>.1?`<p class="hint" style="margin-top:6px">رسالة تأكيد قبل الشحن فيها المبلغ ومدة التوصيل الحقيقية تقلّل الرفض. <button class="link" data-a="tab" data-t="store">صحة متجرك</button></p>`:""}</section>`;
   h+=`<section class="card"><div class="chips scroll" style="margin-bottom:6px">${F.map(f=>`<button class="chip ${UI.ofilter===f[0]?"on":""}" data-a="ofilter" data-v="${f[0]}">${f[1]}</button>`).join("")}</div><div class="rows">`;
   if(!list.length)h+=`<div class="empty">${mascot("sleep",64)}<p>ما فيه طلبات هنا.</p></div>`;
-  list.slice(0,200).forEach(o=>{const st=OST[o.status]||OST.new;h+=`<button class="row" data-a="order" data-id="${o.id}">${ic("truck",o.status==="returned"?"c":o.status==="delivered"?"g":o.status==="new"?"y":"s")}<span class="body"><span class="ttl">#${esc(o.no)} · ${esc(o.cust.name)} <span class="ptag" style="background:${PLATS[o.plat].c}">${PLATS[o.plat].n}</span></span><span class="meta">${esc(o.cust.city||"")} · ${o.lines.length} ${o.lines.length===1?"صنف":"أصناف"} · ${dLabel(o.date)}${o.dir==="in"?" · من المتجر":""}</span></span><span class="amt mid">${can("money")||canRecord("sale")?money(o.total,{noCur:true}):""}<small><span class="tag ${st[1]}">${st[0]}</span></small></span></button>`});
+  list.slice(0,200).forEach(o=>{const st=o.refused?["رفض الاستلام","bad"]:OST[o.status]||OST.new;h+=`<button class="row" data-a="order" data-id="${o.id}">${ic("truck",o.status==="returned"?"c":o.status==="delivered"?"g":o.status==="new"?"y":"s")}<span class="body"><span class="ttl">#${esc(o.no)} · ${esc(o.cust.name)} <span class="ptag" style="background:${PLATS[o.plat].c}">${PLATS[o.plat].n}</span></span><span class="meta">${esc(o.cust.city||"")} · ${o.lines.length} ${o.lines.length===1?"صنف":"أصناف"} · ${dLabel(o.date)}${o.dir==="in"?" · من المتجر":""}</span></span><span class="amt mid">${can("money")||canRecord("sale")?money(o.total,{noCur:true}):""}<small><span class="tag ${st[1]}">${st[0]}</span></small></span></button>`});
   return h+`</div></section></main>`;
 }
 const platKeys=()=>{const p=CTRY().plat;return ["salla","zid"].filter(k=>p.includes(PLATS[k].n))};
 function vMore(){
-  const T=[["tx","list","سجل العمليات","كل اللي انسجل",true],["customers","users","زبدة عملائك","جوالات، عناوين، ديون",can("people")||can("orders")],["suppliers","truck","الموردين","بياناتهم وأوامر الشراء",can("suppliers")&&prof().stock],["report","chart","زبدة شهرك","الأرباح وين راحت الفلوس",can("reports")],["studio","megaphone","زبدة تسويقك","منشور جاهز كل يوم",can("people")||can("profit")||can("edit")],["opps","target","زبدة فرصك","عروض ترجّع العملاء",can("people")||can("profit")],["plans","star","الباقات","الأسعار وادعُ تاجر",me().role==="owner"||me().role==="accountant"],["team","people","الفريق والصلاحيات","ادعُ موظف أو محاسب",true],["all","store","كل أنشطتي","مصانع ومتاجر في مكان واحد",true],["links","link","سلة وزد","الربط مع المنصات",can("links")&&(prof().ship||Object.values(S.links).some(l=>l&&l.on))],["log","clip","سجل النشاط","مين سوّى إيش",can("log")],["settings","gear","الإعدادات","الدولة، الضريبة، البداية",can("edit")]].filter(x=>x[4]);
+  const T=[["tx","list","سجل العمليات","كل اللي انسجل",true],["customers","users","زبدة عملائك","جوالات، عناوين، ديون",can("people")||can("orders")],["suppliers","truck","الموردين","بياناتهم وأوامر الشراء",can("suppliers")&&prof().stock],["report","chart","زبدة شهرك","الأرباح وين راحت الفلوس",can("reports")],["studio","megaphone","زبدة تسويقك","منشور جاهز كل يوم",can("people")||can("profit")||can("edit")],["store","store","زبدة متجرك","صحة متجرك وأوصاف منتجاتك",prof().ship&&(can("edit")||can("people")||can("profit"))],["opps","target","زبدة فرصك","عروض ترجّع العملاء",can("people")||can("profit")],["plans","star","الباقات","الأسعار وادعُ تاجر",me().role==="owner"||me().role==="accountant"],["team","people","الفريق والصلاحيات","ادعُ موظف أو محاسب",true],["all","store","كل أنشطتي",A.order.length>1?"اللي يحتاجك في كل أنشطتك":"فروع ومصانع ومتاجر في مكان واحد",true],["links","link","سلة وزد","الربط مع المنصات",can("links")&&(prof().ship||Object.values(S.links).some(l=>l&&l.on))],["log","clip","سجل النشاط","مين سوّى إيش",can("log")],["settings","gear","الإعدادات","الدولة، الضريبة، البداية",can("edit")]].filter(x=>x[4]);
   return topBars()+band(`${topRow()}<div class="btitle">المزيد</div><div class="bsub">${esc(bizLabel())} · ${esc(CTRY().n)}</div>`,true)+`<main class="view gut"><section class="card"><div class="mgrid">${T.map(x=>`<button data-a="${x[0]==="report"||x[0]==="settings"?x[0]:"tab"}" data-t="${x[0]}">${ic(x[1],"s")}<b>${x[2]}</b><small>${x[3]}</small></button>`).join("")}</div></section>
    <section class="card"><div class="say">${mascot("proud",52)}<div class="bubble">عندك أكثر من نشاط؟ مصنع ومتجر، أو متجرك الشخصي؟ ضيفهم وتنقّل بينهم بضغطة.</div></div><button class="btn block" style="margin-top:10px" data-a="addWs">${svg("plus")} أضف نشاط جديد</button></section></main>`;
 }
@@ -1793,11 +1822,12 @@ function vAll(){
   const keepAs=UI.as;UI.as=null;const L=A.order.map(id=>A.ws[id]).filter(Boolean).map(wsSummary);UI.as=keepAs;
   const tot={};L.forEach(x=>{if(!x.profit)return;const t=tot[x.cur]||(tot[x.cur]={net:0,rev:0,cash:0,n:0});t.net=r2(t.net+x.P.net);t.rev=r2(t.rev+x.P.rev);t.cash=r2(t.cash+x.cash);t.n++});
   let h=subBand(zh("أنشطتك"),`${L.length} ${L.length===1?"نشاط":"أنشطة"} · ${mName(thisMonth())}`)+`<main class="view gut">`;
+  const IN=wsInbox();if(IN.length)h+=`<section class="card wsin"><div class="sec"><h2>يحتاجك اليوم</h2><span class="hint">من كل أنشطتك</span></div>${IN.map(({w,a})=>`<button class="al" data-a="wsAlert" data-id="${w.id}" data-k="${a[4]}" data-v="${esc(a[5])}">${ic(a[2],a[1]==="bad"?"c":a[1]==="warn"?"y":"s")}<p><small>${esc(w.biz.name)}</small>${esc(a[3])}</p><span class="go">${svg("cl")}</span></button>`).join("")}</section>`;
   Object.entries(tot).forEach(([c,t])=>{if(t.n>1)h+=`<section class="card"><div class="sec"><h2>المجموع (${esc(c)})</h2><span class="tag">${t.n} أنشطة</span></div><div class="stat3"><div><b class="num">${nf(t.rev)}</b><small>مبيعات</small></div><div><b class="num ${t.net>=0?"c-in":"c-out"}">${nf(t.net)}</b><small>صافي الربح</small></div><div><b class="num">${nf(t.cash)}</b><small>فلوس</small></div></div><p class="hint" style="margin-top:6px">المجموع يشمل الأنشطة اللي تقدر تشوف أرباحها وبنفس العملة. البيع بين أنشطتك ينحسب مرتين هنا.</p></section>`});
   L.forEach(x=>{const w=x.w;h+=`<button class="card wscard ${w.id===S.id?"cur":""}" data-a="useWs" data-id="${w.id}"><div class="lhead">${ic(BTYPES[w.biz.type].ic,w.biz.type==="factory"?"p":"s")}<div style="flex:1;min-width:0;text-align:right"><b>${esc(w.biz.name)}</b><span class="hint" style="display:block">${esc(bizLabel(w))} · ${esc(COUNTRIES[w.biz.country].n)} · ${ROLES[x.role].n}</span></div>${w.id===S.id?`<span class="tag good">مفتوح</span>`:svg("cl")}</div>
     ${x.profit?`<div class="stat3" style="margin-top:10px"><div><b class="num">${nf(x.P.rev)}</b><small>مبيعات</small></div><div><b class="num ${x.P.net>=0?"c-in":"c-out"}">${nf(x.P.net)}</b><small>صافي الربح</small></div><div><b class="num">${nf(x.cash)}</b><small>فلوس (${esc(x.cur)})</small></div></div>`:`<p class="hint" style="margin-top:8px">دورك ما يعرض الأرباح.</p>`}
     <div class="chips" style="margin-top:8px">${x.al?`<span class="tag warn">${x.al} تنبيهات</span>`:`<span class="tag good">ما فيه تنبيهات</span>`}${x.open?`<span class="tag sky">${x.open} طلبات مفتوحة</span>`:""}${x.money&&x.ar>0.009?`<span class="tag">لك ${nf(x.ar)}</span>`:""}${x.money&&x.ap>0.009?`<span class="tag">عليك ${nf(x.ap)}</span>`:""}</div></button>`});
-  return h+`<button class="btn block" data-a="addWs">${svg("plus")} أضف نشاط جديد</button></main>`;
+  return h+`<div class="wsgo"><button class="btn" data-a="wsCopy">${svg("copy")} نشاط بنسخة</button><button class="btn" data-a="addWs">${svg("plus")} نشاط من الصفر</button>${L.length>1&&canRecord("draw")?`<button class="btn" data-a="xfer" style="grid-column:1/-1">${svg("swap")} حوّل فلوس بين أنشطتك</button>`:""}</div></main>`;
 }
 function examples(){
   const p=S?prof():{stock:true,ship:true};const base=S?(BTYPES[S.biz.type]||{}).base:"store";
@@ -1901,13 +1931,14 @@ async function understand(){
 }
 function openReview(drafts,o){
   o=o||{};drafts.forEach(prepDraft);
-  RV={drafts,text:o.text||"",src:o.src||"manual",editId:o.editId||null,confirmDel:false,exp:drafts.map(()=>!!o.exp)};drawReview();
+  RV={drafts,text:o.text||"",src:o.src||"manual",editId:o.editId||null,confirmDel:false,exp:drafts.map(()=>!!o.exp)};RV.gw=RV.text&&!RV.editId?(wsGuess(RV.text)||{}).id||null:null;drawReview();
 }
 function drawReview(){
   const ed=RV.editId;const n=RV.drafts.length;const sims=simRV();
   const blocked=RV.drafts.filter(d=>d.kind&&!canRecord(d.kind));const ro=ed&&!can("edit")&&!(S.tx.find(t=>t.id===ed)||{}).by===me().id;
   let h=sh(ed?"العملية":n>2?`راجع ${n} عمليات`:n===2?"راجع العمليتين":"تمام كذا؟");
   if(RV.text)h+=`<div class="quoted">«${esc(RV.text)}» ${RV.src==="ai"?`<span class="src">فهمها Claude</span>`:RV.src==="rules"?`<span class="src">فهم تلقائي</span>`:RV.src==="scan"?`<span class="src">من صورة الفاتورة</span>`:""}</div>`;
+  if(RV.gw&&A.ws[RV.gw])h+=`<div class="note warn" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span style="flex:1;min-width:160px">الكلام عن منتجات «${esc(A.ws[RV.gw].biz.name)}»، وأنت فاتح «${esc(S.biz.name)}».</span><button class="btn sm pri" data-a="rvWs" data-id="${RV.gw}">سجّلها هناك</button></div>`;
   if(ed){const et=S.tx.find(t=>t.id===ed);if(et&&et.inv)h+=`<button class="btn sm" data-a="inv" data-v="${et.inv}">${svg("receipt")} شوف الفاتورة #${et.inv}</button>`}
   if(!ed||can("edit"))h+=vbar("rv",ed?"قل التعديل: «خليها 3 علب والمبلغ 450 كاش»":"قل أو صوّر: «زيد 2 مسك» أو «المبلغ 450 كاش»");
   if(blocked.length)h+=`<div class="note warn">دورك (${ROLES[me().role].n}) ما يسمح بتسجيل: ${[...new Set(blocked.map(d=>KINDS[d.kind].n))].join("، ")}.</div>`;
@@ -2054,6 +2085,8 @@ function qsDrafts(){
   return ent.map(([id,q],k)=>{const line=r2((+itemById(id).price||0)*q);const amt=k===ent.length-1?left:r2(sum?line*tot/sum:tot/ent.length);left=r2(left-amt);
     return blankDraft({kind:"sale",amount:amt,pay:QS.pay,item:id,qty:q,uq:q,un:itemById(id).unit,party:QS.party.trim()||null,note:ent.length>1?"طلب واحد":"",src:"quick"})});
 }
+function qsBasket(){const ds=qsDrafts();if(ds.length<2)return ds;const sum=qsSum();const tot=QS.total!=null?+QS.total:sum;const up=tot>sum;
+  const d=Object.assign({},ds[0],{note:"",disc:up?0:r2(sum-tot),lines:ds.map(x=>{const l=toLine(Object.assign({},x,{amount:up?x.amount:r2((+itemById(x.item).price||0)*x.qty)}));l.man=true;return l})});lineSum(d);return [d]}
 function qsReady(){const ds=qsDrafts();return ds.length>0&&!!QS.pay&&ds.every(d=>d.amount>0)&&(QS.pay!=="credit"||!!QS.party.trim())}
 function qsProfit(){const ds=qsDrafts();if(!ds.length||!ds.every(d=>d.amount>0))return null;const rows=simulate(ds.map(d=>Object.assign({},d,{pay:d.pay||"cash",noOrder:true})),null);return r2(rows.reduce((s,r)=>s+(r?r.info.net-(r.info.cogs||0):0),0))}
 function drawQS(){
@@ -2063,7 +2096,7 @@ function drawQS(){
     const plat=platKeys().some(linked);
     h+=`<div class="card" style="display:grid;gap:10px">${ent.map(([id,q])=>`<div class="qline"><span>${esc(itemById(id).name)}</span><span class="stepper"><button data-a="qsDec" data-id="${id}" aria-label="أقل">−</button><b class="num">${nf(q)}</b><button data-a="qsAdd" data-id="${id}" aria-label="أكثر">+</button></span></div>`).join("")}
       <div class="field"><label for="qsTot">الإجمالي اللي استلمته${vatOn()?" (شامل الضريبة)":""}</label><input id="qsTot" class="bigin" type="number" inputmode="decimal" min="0" step="0.01" value="${tot}"></div>
-      <p class="hint" id="qsDisc">${QS.total!=null&&r2(QS.total)!==sum?`خصم ${moneyT(sum-QS.total)} يتوزع على المنتجات.`:"غيّر الإجمالي لو عطيت خصم."}</p></div>
+      <p class="hint" id="qsDisc">${QS.total!=null&&r2(QS.total)!==sum?`خصم ${moneyT(sum-QS.total)} يتوزع على المنتجات.`:"غيّر الإجمالي لو عطيت خصم."}</p>${QS.pay==="platform"&&+(S.store||{}).free>0?`<p class="hint" id="qsShip">${qsShipT(tot)}</p>`:""}</div>
       <div class="field ${QS.pay?"":"need"}"><span class="flabel">وين دخلت الفلوس؟</span><div class="chips">${payFor("sale").map(p=>`<button class="chip ${QS.pay===p?"on":""}" data-a="qsPay" data-v="${p}">${PAYS[p].n}</button>`).join("")}</div>${QS.pay==="platform"&&plat?`<span class="hint">بعدها تكمّل بيانات الشحن وينرسل الطلب.</span>`:""}</div>
       <div class="field ${QS.pay==="credit"&&!QS.party.trim()?"need":""}"><label for="qsParty">العميل${QS.pay==="credit"?"":" (اختياري)"}</label><input id="qsParty" list="plist" value="${esc(QS.party)}" autocomplete="off"></div>
       <div class="eff" id="qsEff">${pr!=null?`<div class="e ${pr>=0?"good":"bad"}">${svg("coins")}<span>ربحك من الطلب ${moneyT(pr)}</span></div>`:""}</div>
@@ -2071,7 +2104,8 @@ function drawQS(){
   }
   sheetHTML(h);
 }
-function qsLive(){const pr=can("profit")?qsProfit():null;const e=$("#qsEff");if(e)e.innerHTML=pr!=null?`<div class="e ${pr>=0?"good":"bad"}">${svg("coins")}<span>ربحك من الطلب ${moneyT(pr)}</span></div>`:"";const b=document.querySelector("[data-a=qsSave]");if(b)b.disabled=!qsReady();const dsc=$("#qsDisc");const sum=qsSum();if(dsc)dsc.textContent=QS.total!=null&&r2(QS.total)!==sum?`خصم ${moneyT(sum-QS.total)} يتوزع على المنتجات.`:"غيّر الإجمالي لو عطيت خصم."}
+function qsShipT(t){const f=+sto().free;return +t>=f?`${svg("truck")} الطلب فوق ${nf(f)}، الشحن مجاني للعميل`:`${svg("truck")} باقي ${moneyT(f-t)} ويصير الشحن مجاني. اقترح على العميل يكمّل سلته`}
+function qsLive(){const sp=$("#qsShip");if(sp)sp.innerHTML=qsShipT(QS.total!=null?+QS.total:qsSum());const pr=can("profit")?qsProfit():null;const e=$("#qsEff");if(e)e.innerHTML=pr!=null?`<div class="e ${pr>=0?"good":"bad"}">${svg("coins")}<span>ربحك من الطلب ${moneyT(pr)}</span></div>`:"";const b=document.querySelector("[data-a=qsSave]");if(b)b.disabled=!qsReady();const dsc=$("#qsDisc");const sum=qsSum();if(dsc)dsc.textContent=QS.total!=null&&r2(QS.total)!==sum?`خصم ${moneyT(sum-QS.total)} يتوزع على المنتجات.`:"غيّر الإجمالي لو عطيت خصم."}
 function quickExpense(){QE={cat:null,amount:"",pay:null,party:""};drawQE()}
 function qeReady(){return !!(QE.cat&&+QE.amount>0&&QE.pay&&(QE.pay!=="credit"||QE.party.trim()))}
 function drawQE(){
@@ -2090,7 +2124,7 @@ function produceStart(id){const made=S.items.filter(i=>i.kind==="made");if(!made
 
 /* orders */
 function orderSheet(id){
-  const o=S.orders.find(x=>x.id===id);if(!o)return;const st=OST[o.status]||OST.new;const idx=OFLOW.indexOf(o.status);const c=o.cust||{};
+  const o=S.orders.find(x=>x.id===id);if(!o)return;const st=o.refused?["رفض الاستلام","bad"]:OST[o.status]||OST.new;const idx=OFLOW.indexOf(o.status);const c=o.cust||{};
   const nextL={new:["preparing","ابدأ التجهيز"],preparing:["shipped","سلّمه لشركة الشحن"],shipped:["delivered","تم التوصيل"]}[o.status];
   let h=sh(`طلب #${esc(o.no)}`)+`<div class="lhead"><span class="plogo" style="background:${PLATS[o.plat].c}">${PLATS[o.plat].n}</span><div style="flex:1"><b>${esc(c.name)}</b><span class="hint" style="display:block">${dLabel(o.date)} · ${o.dir==="in"?"نزل من المتجر":"انرسل من زبدة"}${o.sim?" · تجريبي":""}</span></div><span class="tag ${st[1]}">${st[0]}</span></div>`;
   if(o.status!=="returned")h+=`<div class="track">${OFLOW.map((k,i)=>`<div class="tk ${i<=idx?"on":""}"><span></span><small>${OST[k][0]}</small></div>`).join("")}</div>`;
@@ -2099,7 +2133,7 @@ function orderSheet(id){
     ${c.street?`<div class="kv"><span>الشارع</span><span>${esc(c.street)}</span></div>`:""}${c.nat?`<div class="kv"><span>العنوان الوطني</span><span dir="ltr">${esc(c.nat)}</span></div>`:""}${c.notes?`<div class="kv"><span>ملاحظة</span><span>${esc(c.notes)}</span></div>`:""}</div>
    <div class="card"><div class="sec"><h2>المنتجات</h2></div>${o.lines.map(l=>{const it=itemById(l.id);return `<div class="kv"><span>${esc(it?it.name:"منتج")} × ${l.un&&it&&l.un!==it.unit?nf(l.uq)+" "+esc(l.un):nf(l.q)}</span><span>${money(l.amt)}</span></div>`}).join("")}
     <div class="kv tot"><span>الإجمالي</span><span>${money(o.total)}</span></div><div class="kv"><span>الدفع</span><span>${o.paid?"مدفوع":"عند الاستلام"}</span></div><div class="kv"><span>الشحن</span><span>${esc(o.courier||"—")}${o.awb?` · <span dir="ltr">${esc(o.awb)}</span>`:""}</span></div></div>`;
-  if(can("orders")){h+=`<div class="btns">${nextL?`<button class="btn pri" data-a="ostep" data-id="${o.id}" data-v="${nextL[0]}">${svg("check")} ${nextL[1]}</button>`:""}${["shipped","delivered"].includes(o.status)&&canRecord("ret")?`<button class="btn danger" data-a="oret" data-id="${o.id}">${svg("undo")} مرتجع</button>`:""}<button class="btn" data-a="omsg" data-id="${o.id}">${svg("copy")} رسالة للعميل</button></div>`}
+  if(can("orders")){h+=`<div class="btns">${nextL?`<button class="btn pri" data-a="ostep" data-id="${o.id}" data-v="${nextL[0]}">${svg("check")} ${nextL[1]}</button>`:""}${o.status==="shipped"&&!o.paid&&canRecord("ret")?`<button class="btn danger" data-a="orefuse" data-id="${o.id}">${svg("x")} رفض الاستلام</button>`:""}${["shipped","delivered"].includes(o.status)&&canRecord("ret")?`<button class="btn danger" data-a="oret" data-id="${o.id}">${svg("undo")} مرتجع</button>`:""}<button class="btn" data-a="omsg" data-id="${o.id}">${svg("copy")} رسالة للعميل</button></div>`}
   h+=`<p class="hint">تجريبي: تغيير الحالة هنا محاكاة. في النسخة الكاملة الحالة تتحدث من ${PLATS[o.plat].n} وشركة الشحن.</p>`;
   const rows=(o.txIds||[]).map(tid=>ledger().byId[tid]).filter(Boolean);if(rows.length)h+=`<div class="card"><div class="sec"><h2>القيود المرتبطة</h2></div><div class="rows">${rows.map(txRow).join("")}</div></div>`;
   openSheet(h);
@@ -2271,9 +2305,10 @@ function settingsSheet(){
    ${owner?`<details class="dzone"><summary>${svg("trash")} حذف ومسح</summary><div class="btns">${A.order.length>1?`<button class="btn danger" data-a="wsDelAsk">احذف هذا النشاط</button>`:""}<button class="btn danger" data-a="resetAsk">امسح كل البيانات</button></div></details>`:""}
    <p class="hint" style="text-align:center">زبدة · نسخة تجريبية. الأرقام والضريبة تقديرات لمساعدتك.</p>`);
 }function wsSheet(){
-  const keepAs=UI.as;UI.as=null;const L=A.order.map(id=>A.ws[id]).filter(Boolean).map(w=>({w,role:(w.team.find(m=>m.id===w.meId)||{role:"owner"}).role}));UI.as=keepAs;
-  openSheet(sh("أنشطتك")+`<div class="card"><div class="rows">${L.map(x=>`<button class="row" data-a="useWs" data-id="${x.w.id}">${ic(BTYPES[x.w.biz.type].ic,x.w.id===S.id?"g":"s")}<span class="body"><span class="ttl">${esc(x.w.biz.name)}</span><span class="meta">${esc(bizLabel(x.w))} · ${esc(COUNTRIES[x.w.biz.country].n)} · ${ROLES[x.role].n}</span></span>${x.w.id===S.id?`<span class="tag good">مفتوح</span>`:svg("cl")}</button>`).join("")}</div></div>
-   <div class="btns"><button class="btn pri" data-a="tab" data-t="all">${svg("store")} كل أنشطتي في شاشة وحدة</button><button class="btn" data-a="addWs">${svg("plus")} نشاط جديد</button></div>`);
+  const L=wsList().map(wsPulse);
+  openSheet(sh("أنشطتك")+`<div class="card"><div class="rows">${L.map(x=>`<button class="row" data-a="useWs" data-id="${x.w.id}">${ic(BTYPES[x.w.biz.type].ic,x.w.id===S.id?"g":"s")}<span class="body"><span class="ttl">${esc(x.w.biz.name)}${x.al.some(a=>a[0]>=2)?` <span class="tag warn">يحتاجك</span>`:""}</span><span class="meta">${esc(pulseLine(x))}</span><span class="meta">${esc(bizLabel(x.w))} · ${ROLES[x.role].n}</span></span>${x.w.id===S.id?`<span class="tag good">مفتوح</span>`:svg("cl")}</button>`).join("")}</div></div>
+   ${L.length>1?`<button class="btn pri block" data-a="tab" data-t="all">${svg("store")} كل أنشطتي في شاشة وحدة</button>`:""}
+   <div class="wsgo"><button class="btn" data-a="wsCopy">${svg("copy")} نشاط بنسخة</button><button class="btn" data-a="addWs">${svg("plus")} نشاط من الصفر</button>${L.length>1&&canRecord("draw")?`<button class="btn" data-a="xfer" style="grid-column:1/-1">${svg("swap")} حوّل فلوس بين أنشطتك</button>`:""}</div>`);
 }
 function linkSheet(p){
   openSheet(sh("اربط "+PLATS[p].n)+`<div class="lhead"><span class="plogo" style="background:${PLATS[p].c}">${PLATS[p].n}</span><div><b>اربط متجرك في ${PLATS[p].n}</b><span class="hint" style="display:block">في النسخة الكاملة تسجّل دخول ${PLATS[p].n} وتوافق، وما نشوف كلمة مرورك.</span></div></div>
@@ -2443,7 +2478,7 @@ const BGROUPS=[["fashion","أزياء وموضة"],["beauty","عطور وجما�
 const CHANNELS={shop:["محل","home","زباينك يجونك"],online:["متجر إلكتروني","store","سلة، زد، إنستقرام"],both:["الاثنين","swap","محل ومتجر"]};
 const TSYN={abaya:["عبايات","عبايه","ازياء","ملابس","فساتين"],bags:["شنط","شنطه","احذيه","جزم","نعال"],accessories:["اكسسوارات","مجوهرات","ذهب","فضه","ساعات"],kids:["اطفال","العاب","لعب"],perfume:["عطور","عطر","بخور","عود","دهن عود"],beauty:["مكياج","عنايه","كريمات","بشره","تجميل"],salon:["صالون","مشغل","حلاق"],sweets:["حلويات","حلا","تمور","تمر","شوكولاته"],coffee:["قهوه","محمصه","محامص","بن"],home:["اكل بيتي","اسر منتجه","طبخ بيتي"],food:["مطعم","كافيه","كوفي","مقهى"],grocery:["بقاله","تموينات","سوبرماركت"],flowers:["ورد","زهور","هدايا"],decor:["ديكور","ادوات منزليه","منزليه","مفارش"],phones:["جوالات","الكترونيات","اكسسوارات جوال"],store:["منتجات متنوعه","منوعات"],service:["خدمات","فريلانسر","تصميم","استشارات"],factory:["مصنع","ورشه","تصنيع"]};
 function bizCh(w){w=w||S;if(!w)return "online";const t=BTYPES[w.biz.type]||{};if(t.noCh)return "shop";if(w.biz.ch&&CHANNELS[w.biz.ch])return w.biz.ch;const lk=Object.values(w.links||{}).some(l=>l&&l.on);return t.base==="factory"?"shop":lk?"both":t.base==="shop"||t.base==="food"?"shop":"online"}
-function bizLabel(w){w=w||S;const t=BTYPES[w.biz.type]||BTYPES.store;return t.n+(t.noCh?"":" · "+CHANNELS[bizCh(w)][0])}
+function bizLabel(w){w=w||S;const t=BTYPES[w.biz.type]||BTYPES.store;const c=bizCh(w);return t.n+(t.noCh?"":" · "+(c==="both"?CHANNELS.both[2]:CHANNELS[c][0]))}
 function defCh(type){const t=BTYPES[type]||{};return t.base==="shop"||t.base==="food"||t.base==="factory"?"shop":"online"}
 function typePicker(cur,a){return `<div class="tpick">${BGROUPS.map(([g,gn])=>`<div class="tgrp"><span class="tgn">${gn}</span><div class="tgl">${Object.entries(BTYPES).filter(([,t])=>t.g===g).map(([k,t])=>`<button type="button" class="tbtn ${cur===k?"on":""}" data-a="${a}" data-v="${k}" aria-pressed="${cur===k}">${svg(t.ic)}<span>${t.n}</span></button>`).join("")}</div></div>`).join("")}</div>`}
 function chPicker(cur,a){return `<div class="seg3" role="group" aria-label="وين تبيع">${Object.entries(CHANNELS).map(([k,c])=>`<button type="button" class="${cur===k?"on":""}" data-a="${a}" data-v="${k}" aria-pressed="${cur===k}">${svg(c[1])}<b>${c[0]}</b><small>${c[2]}</small></button>`).join("")}</div>`}
@@ -2952,6 +2987,9 @@ function studioIdeas(){
   const tips=IND_TIPS[kk]||IND_TIPS.zb;out.push({k:"tip",lay:"quote",tag:"نصيحة اليوم",title:tips[dayN()%tips.length],cta:"تابعنا لنصايح أكثر"});
   const n=S.tx.filter(x=>x.kind==="sale"&&mKey(x.date)===thisMonth()).length;if(n>=10)out.push({k:"thanks",lay:"quote",tag:"شكرًا لكم",title:`${n} طلب هالشهر، شكرًا لثقتكم`,cta:"حياكم دايمًا"});
   if(sell.length>=3)out.push({k:"menu",lay:"list",tag:"قائمة الأسعار",title:base==="service"?"خدماتنا وأسعارها":"منتجاتنا وأسعارها",list:sell.slice(0,5),cta:"اطلب بالواتساب"});
+  const st=S.store||{};const sp=st.pays||[];if(prof().ship&&(st.days||+st.free>0||sp.length||st.ret)){const PP=stPays();const bn=sp.filter(k=>["tabby","tamara","valu"].includes(k));const rows=[+st.free>0?`شحن مجاني فوق ${nf(st.free)} ${CUR}`:null,st.days?`توصيل خلال ${st.days} أيام`:null,bn.length?`قسّطها مع ${bn.map(k=>PP[k]).join(" و")}`:null,sp.includes("cod")?"الدفع عند الاستلام":null,st.ret||null].filter(Boolean).map(tone).slice(0,4);if(rows.length>=2)out.push({k:"trust",lay:"trust",tag:"ليش تطلب منّا؟",title:"تسوّق وأنت مرتاح",rows,cta:"اطلب الحين"})}
+  const pki=sell.find(i=>i.kind!=="service"&&(i.packs||[]).some(p=>+p.q>1));if(pki){const p=pki.packs.find(x=>+x.q>1);out.push({k:"pack",lay:"hero",tag:`${p.n} ووفّر`,title:`${p.n} فيها ${nf(p.q)} ${pki.unit}`,it:pki,price:Math.round(pki.price*p.q*.9),old:r2(pki.price*p.q),cta:"وفّر 10% على الكمية"})}
+  out.forEach(x=>{x.cta=tone(x.cta);x.title=tone(x.title)});
   return out;
 }
 function todayIdea(){const I=studioIdeas();return I.length?I[dayN()%I.length]:null}
@@ -2976,6 +3014,7 @@ function drawItemArt(g,kit,it,x,y,w,h,shape,photo){g.save();framePath(g,shape,x,
   g.restore();g.save();g.lineWidth=shape==="arch"?6:4;g.strokeStyle=kit.acc;framePath(g,shape,x,y,w,h);g.stroke();if(shape==="arch"){g.lineWidth=2;framePath(g,"arch",x-16,y-16,w+32,h+16);g.stroke()}g.restore()}
 function pricePill(g,kit,text,cx,cy,size){g.font=`800 ${size}px "Baloo Bhaijaan 2","IBM Plex Sans Arabic",sans-serif`;const w=g.measureText(text).width+size*1.1,h=size*1.35;rr(g,cx-w/2,cy-h*.72,w,h,h/2);g.fillStyle=kit.acc;g.fill();g.fillStyle=kit.on;g.fillText(text,cx,cy+size*.14)}
 function drawPost(cv,idea,kit,fmt){
+  if(fmt==="wide")return drawWide(cv,idea,kit);
   const W=1080,H=fmt==="story"?1920:1350;cv.width=W;cv.height=H;const g=cv.getContext("2d");const F='"IBM Plex Sans Arabic",Tahoma,sans-serif';const HF=`"${kit.hf}","IBM Plex Sans Arabic",sans-serif`;
   const gr=g.createLinearGradient(0,0,0,H);gr.addColorStop(0,kit.bg);gr.addColorStop(1,kit.bg2);g.fillStyle=gr;g.fillRect(0,0,W,H);drawPattern(g,kit,W,H);
   g.direction="rtl";g.textAlign="center";const k=H/1350;let y=Math.round(96*k);
@@ -2992,7 +3031,9 @@ function drawPost(cv,idea,kit,fmt){
     g.beginPath();g.arc(W/2,y+fh/2,62,0,7);g.fillStyle=kit.acc;g.fill();g.fillStyle=kit.on;g.font=`800 ${idea.join==="+"?80:54}px "Baloo Bhaijaan 2",sans-serif`;g.fillText(idea.join,W/2,y+fh/2+(idea.join==="+"?26:18));y+=fh+Math.round(170*k)}
   else if(idea.lay==="list"){const lh=110;y+=Math.max(0,Math.round((avail-(idea.list.length*lh+70+170+84))/2));const top=y;rr(g,90,top,W-180,idea.list.length*lh+70,36);g.fillStyle=lum(kit.bg)<.5?"rgba(255,255,255,.07)":"rgba(255,255,255,.6)";g.fill();idea.list.forEach((it,i)=>{const yy=top+90+i*lh;g.textAlign="right";g.fillStyle=kit.ink;g.font=`700 46px ${F}`;g.fillText(shortName(it.name,20),W-140,yy);g.textAlign="left";g.fillStyle=kit.acc;g.font=`800 50px "Baloo Bhaijaan 2",sans-serif`;g.fillText(`${nf(it.price)} ${CUR}`,140,yy);g.textAlign="center";if(i<idea.list.length-1){g.globalAlpha=.18;g.fillStyle=kit.ink;g.fillRect(140,yy+34,W-280,2);g.globalAlpha=1}});y=top+idea.list.length*lh+Math.round(170*k)}
   else if(idea.lay==="quote"){g.font=`700 70px ${HF}`;const ql=wrapLines(g,idea.title,W-200).slice(0,4);y+=Math.max(0,Math.round((avail-(330+ql.length*92+40))/2));g.fillStyle=kit.acc;g.font=`700 300px "Amiri",serif`;g.globalAlpha=.9;g.fillText("”",W/2,y+260);g.globalAlpha=1;y+=Math.round(330*k);g.fillStyle=kit.ink;g.font=`700 70px ${HF}`;wrapLines(g,idea.title,W-200).slice(0,4).forEach(l=>{g.fillText(l,W/2,y);y+=92});y+=Math.round(40*k)}
-  if(idea.lay!=="quote"){g.fillStyle=kit.ink;g.font=`700 ${idea.lay==="list"?64:72}px ${HF}`;const tl=wrapLines(g,idea.lay==="hero"&&idea.it&&idea.k!=="dish"?idea.it.name:idea.title,W-160).slice(0,2);tl.forEach(l=>{g.fillText(l,W/2,y);y+=84});
+  else if(idea.lay==="trust"){const n=idea.rows.length,rh=140;g.font=`700 76px ${HF}`;const tl=wrapLines(g,idea.title,W-160).slice(0,2);y+=Math.max(0,Math.round((avail-(tl.length*90+40+n*(rh+24)))/2));g.fillStyle=kit.ink;tl.forEach(l=>{g.fillText(l,W/2,y+60);y+=90});y+=40;
+    idea.rows.forEach(r=>{rr(g,110,y,W-220,rh,40);g.fillStyle=lum(kit.bg)<.5?"rgba(255,255,255,.08)":"rgba(255,255,255,.65)";g.fill();const cy=y+rh/2;g.beginPath();g.arc(W-180,cy,38,0,7);g.fillStyle=kit.acc;g.fill();g.strokeStyle=kit.on;g.lineWidth=9;g.lineCap="round";g.lineJoin="round";g.beginPath();g.moveTo(W-197,cy);g.lineTo(W-185,cy+13);g.lineTo(W-162,cy-13);g.stroke();g.textAlign="right";g.fillStyle=kit.ink;g.font=`700 42px ${F}`;g.fillText(shortName(r,30),W-245,cy+15);g.textAlign="center";y+=rh+24});y+=Math.round(30*k)}
+  if(idea.lay!=="quote"&&idea.lay!=="trust"){g.fillStyle=kit.ink;g.font=`700 ${idea.lay==="list"?64:72}px ${HF}`;const tl=wrapLines(g,idea.lay==="hero"&&idea.it&&idea.k!=="dish"?idea.it.name:idea.title,W-160).slice(0,2);tl.forEach(l=>{g.fillText(l,W/2,y);y+=84});
     if(idea.lay==="hero"&&idea.it&&idea.k!=="dish"){g.font=`500 40px ${F}`;g.globalAlpha=.85;g.fillText(idea.title,W/2,y);g.globalAlpha=1;y+=70}}
   if(idea.price&&idea.lay!=="list"&&idea.k!=="poll"){y+=Math.round(30*k);pricePill(g,kit,`${nf(idea.price)} ${CUR}`,W/2,y,86);if(idea.old){g.font=`600 42px ${F}`;g.fillStyle=kit.ink;g.globalAlpha=.65;const ot=`بدل ${nf(idea.old)}`;g.fillText(ot,W/2,y+96);const ow=g.measureText(ot).width;g.fillRect(W/2-ow/2,y+80,ow,4);g.globalAlpha=1}}
   const handle=(S.brand&&S.brand.handle)?"@"+String(S.brand.handle).replace(/^@/,""):"";const foot=[idea.cta,S.biz.phone||handle].filter(Boolean).join("  ·  ");
@@ -3001,8 +3042,8 @@ function drawPost(cv,idea,kit,fmt){
   else{g.fillStyle=kit.ink;g.globalAlpha=.45;g.font=`500 26px ${F}`;g.fillText("صُمّم بزبدة",W/2,H-34);g.globalAlpha=1}
 }
 function studioCaption(idea){const city=(S.biz.addr||"").split(/[،,]/)[0].trim()||CTRY().cities[0];const kk=KIT_OF[S.biz.type]||"zb";const handle=S.brand&&S.brand.handle?"@"+String(S.brand.handle).replace(/^@/,""):"";
-  const body=idea.lay==="list"?idea.list.map(i=>`• ${i.name}: ${nf(i.price)} ${CUR}`).join("\n"):idea.lay==="duo"?(idea.k==="poll"?`${idea.it.name} ولا ${idea.it2.name}؟`:`${idea.it.name} + ${idea.it2.name} بـ ${nf(idea.price)} ${CUR} بدل ${nf(idea.old)}`):idea.it&&idea.price?`${idea.it.name} بـ ${nf(idea.price)} ${CUR}${idea.old?` بدل ${nf(idea.old)}`:""}`:"";
-  return `${idea.title} ✨${body?"\n"+body:""}\n${idea.cta}${S.biz.phone?`\nللطلب: ${S.biz.phone}`:""}${handle?`\n${handle}`:""}\n\n#${city.replace(/\s/g,"_")} ${IND_TAGS[kk]||""} #${S.biz.name.replace(/\s/g,"_")}`}
+  const body=idea.lay==="list"?idea.list.map(i=>`• ${i.name}: ${nf(i.price)} ${CUR}`).join("\n"):idea.lay==="trust"?idea.rows.map(r=>`✓ ${r}`).join("\n"):idea.lay==="duo"?(idea.k==="poll"?`${idea.it.name} ولا ${idea.it2.name}؟`:`${idea.it.name} + ${idea.it2.name} بـ ${nf(idea.price)} ${CUR} بدل ${nf(idea.old)}`):idea.it&&idea.price?`${idea.it.name} بـ ${nf(idea.price)} ${CUR}${idea.old?` بدل ${nf(idea.old)}`:""}`:"";
+  return `${idea.title} ✨${body?"\n"+body:""}\n${idea.cta}${+(S.store||{}).free>0&&idea.k!=="trust"?`\n🚚 شحن مجاني فوق ${nf(S.store.free)} ${CUR}`:""}${S.biz.phone?`\nللطلب: ${S.biz.phone}`:""}${handle?`\n${handle}`:""}\n\n#${city.replace(/\s/g,"_")} ${IND_TAGS[kk]||""} #${S.biz.name.replace(/\s/g,"_")}`}
 function postEffect(p){if(!p.item)return null;const t0=p.date;const q=(a,b)=>S.tx.filter(x=>x.kind==="sale"&&x.item===p.item&&x.date>=a&&x.date<=b).reduce((s,x)=>s+(+x.qty||0),0);const after=q(t0,addDays(t0,3)),before=q(addDays(t0,-4),addDays(t0,-1));if(daysBetween(t0,today())<1)return {wait:true};return {after,before,chg:before>0?(after-before)/before:after>0?1:0}}
 function vStudio(){
   const I=studioIdeas();UI.st=UI.st||{};if(UI.st.i==null||UI.st.i>=I.length)UI.st.i=I.length?dayN()%I.length:0;const idea=I[UI.st.i];const kit=curKit();const B=S.brand||{};const hasLogo=(()=>{try{return !!localStorage.getItem(logoKey())}catch(e){return false}})();
@@ -3013,9 +3054,9 @@ function vStudio(){
     <div class="g2"><div class="field"><label for="bkHandle">حسابك (إنستقرام / سناب)</label><input id="bkHandle" dir="ltr" value="${esc(B.handle||"")}" placeholder="@mystore"></div><div class="field"><label for="bkPhone">جوال الطلبات</label><input id="bkPhone" dir="ltr" inputmode="tel" value="${esc(S.biz.phone||"")}" placeholder="${CTRY().phx}"></div></div></section>`;
   if(!idea)return h+`<section class="card"><div class="empty">${mascot("happy",64)}<p>أضف منتجاتك أو خدماتك بأسعارها، وأنا أصمم لك منشور جاهز كل يوم.</p><button class="btn pri" data-a="itemNew">${svg("plus")} أضف منتج</button></div></section></main>`;
   const pid=idea.it&&!idea.list?idea.it.id:null;
-  h+=`<section class="card stu"><div class="sec"><h2>منشور اليوم</h2><div class="seg2" role="group" aria-label="المقاس"><button class="${UI.st.fmt!=="story"?"on":""}" data-a="stFmt" data-v="post">منشور</button><button class="${UI.st.fmt==="story"?"on":""}" data-a="stFmt" data-v="story">ستوري</button></div></div>
-    <div class="stucv ${UI.st.fmt==="story"?"story":""}"><canvas id="stuCv" aria-label="معاينة المنشور"></canvas></div>
-    <p class="hint stuin">${svg("spark")} مستوحى من متاجر ${esc(kit.n)}${pid&&!hasPhoto(pid)?" · ضيف صورة المنتج وتطلع أحلى بكثير":""}</p>
+  h+=`<section class="card stu"><div class="sec"><h2>منشور اليوم</h2><div class="seg2" role="group" aria-label="المقاس"><button class="${UI.st.fmt!=="story"&&UI.st.fmt!=="wide"?"on":""}" data-a="stFmt" data-v="post">منشور</button><button class="${UI.st.fmt==="story"?"on":""}" data-a="stFmt" data-v="story">ستوري</button>${prof().ship?`<button class="${UI.st.fmt==="wide"?"on":""}" data-a="stFmt" data-v="wide">صورة الرابط</button>`:""}</div></div>
+    <div class="stucv ${UI.st.fmt==="story"?"story":UI.st.fmt==="wide"?"wide":""}"><canvas id="stuCv" aria-label="معاينة المنشور"></canvas></div>
+    <p class="hint stuin">${svg("spark")} ${UI.st.fmt==="wide"?"تطلع لما ينرسل رابط متجرك في الواتساب. 1200×630 · ":""}مستوحى من متاجر ${esc(kit.n)}${pid&&!hasPhoto(pid)?" · ضيف صورة المنتج وتطلع أحلى بكثير":""}</p>
     <div class="chips scroll" role="group" aria-label="الفكرة">${I.map((x,k)=>`<button class="chip ${k===UI.st.i?"on":""}" data-a="stIdea" data-v="${k}">${esc(x.tag)}</button>`).join("")}</div>
     <div class="kits" role="group" aria-label="التصميم">${kitKeys().map(k=>{const K=k==="brand"?brandKit(true):KITS[k];const on=(UI.st.kit||(S.brand&&S.brand.color?"brand":KIT_OF[S.biz.type]||"zb"))===k;return `<button class="kitb ${on?"on":""}" data-a="stKit" data-v="${k}"><span style="background:linear-gradient(135deg,${K.bg},${K.bg2})"><i style="background:${K.acc}"></i></span><small>${esc(K.n)}</small></button>`}).join("")}</div>
     <div class="btns"><button class="btn sm" data-a="stFlip">${svg("swap")} ${UI.st.flip?"الألوان الأصلية":"اقلب الألوان"}</button>${pid?`<label class="btn sm">${svg("camera")} ${hasPhoto(pid)?"غيّر صورة المنتج":"صورة المنتج"}<input type="file" accept="image/*" id="stuPhoto" data-id="${pid}" hidden></label>`:""}</div>
@@ -3031,16 +3072,17 @@ function vStudio(){
 let FONTS_OK=false;
 function studioMount(){const cv=$("#stuCv");if(!cv)return;const I=studioIdeas();const idea=I[UI.st.i];if(!idea)return;const kit=curKit();const go=()=>{if(cv.isConnected)drawPost(cv,idea,kit,UI.st.fmt)};go();
   if(!FONTS_OK&&document.fonts&&document.fonts.load){Promise.all(["700 80px \"Reem Kufi\"","700 80px \"Amiri\"","800 80px \"Baloo Bhaijaan 2\"","700 40px \"IBM Plex Sans Arabic\""].map(f=>document.fonts.load(f).catch(()=>{}))).then(()=>{FONTS_OK=true;go()})}}
-function studioLog(){const I=studioIdeas();const idea=I[UI.st.i];if(!idea)return;S.posts=S.posts||[];if(!S.posts.some(p=>p.date===today()&&p.k===idea.k)){S.posts.push({id:uid(),date:today(),k:idea.k,tag:idea.tag,item:idea.it&&!idea.list?idea.it.id:null});if(S.posts.length>60)S.posts=S.posts.slice(-60);commit([])}}
+function studioLog(){const I=studioIdeas();const idea=I[UI.st.i];if(!idea)return;S.posts=S.posts||[];if(!S.posts.some(p=>p.date===today()&&p.k===idea.k)){S.posts.push({id:uid(),date:today(),k:idea.k,tag:idea.tag,item:idea.it&&!idea.list?idea.it.id:null,ip:idea.it&&!idea.list?+idea.it.price||null:null});if(S.posts.length>60)S.posts=S.posts.slice(-60);commit([])}}
 async function studioShare(){
   const cv=$("#stuCv");if(!cv)return;const cap=($("#stuCap")||{}).value||"";studioLog();
-  const blob=await new Promise(r=>cv.toBlob(r,"image/png"));const fn=`zubda-${UI.st.fmt==="story"?"story":"post"}-${today()}.png`;
+  const blob=await new Promise(r=>cv.toBlob(r,"image/png"));const fn=`zubda-${UI.st.fmt==="story"?"story":UI.st.fmt==="wide"?"link":"post"}-${today()}.png`;
   try{const file=new File([blob],fn,{type:"image/png"});if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],text:cap});toast("انشر ✓ وأنا أتابع أثره");return}}catch(e){if(e&&e.name==="AbortError")return}
   try{const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=fn;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),4000);copyText(cap);toast("نزلت الصورة ✓ والنص انسخ")}catch(e){toast("ما قدرت أنزل الصورة هنا. اضغط مطول على الصورة واحفظها")}
 }
 function planTasks(){
   const t=today();const T=[];const idea=todayIdea();const done=(S.planDone&&S.planDone.d===t?S.planDone.k:[]);
   if(idea)T.push({k:"post",t:`انشر منشور اليوم: ${idea.tag}${idea.it&&!idea.list?` · ${idea.it.name}`:""}`,a:"tab",at:{t:"studio"},done:(S.posts||[]).some(p=>p.date===t)});
+  if(prof().ship&&(can("edit")||can("people")||can("profit"))){const H=stoHealth();if(H.next&&H.score<100)T.push({k:"store",t:`صحة متجرك ${H.score}%: ${H.next.t}`,a:"tab",at:{t:"store"}})}
   const o=(can("people")||can("profit"))?opps().find(x=>x.k==="lost"||x.k==="stock"||x.k==="vip"):null;
   if(o)T.push({k:"opp",t:o.k==="stock"?o.t:o.k==="lost"?`رجّع ${o.names.length} عملاء غابوا برسالة «وحشتنا»`:"أرسل عرض خاص لعملائك المميزين",a:o.k==="stock"?(itemById(o.id)&&itemById(o.id).kind==="made"?"qProd":"itemBuy"):"offer",at:o.k==="stock"?{id:o.id}:{k:o.k}});
   const debt=can("money")?Object.values(parties()).filter(p=>p.ar>0.009&&p.age>14).sort((a,z)=>z.ar-a.ar)[0]:null;
@@ -3051,9 +3093,143 @@ function planTasks(){
 function planCard(){const T=planTasks();if(!T.length)return "";const n=T.filter(x=>x.done).length;const at=a=>Object.entries(a||{}).map(([k,v])=>`data-${k}="${esc(v)}"`).join(" ");
   return `<section class="card plan2"><div class="sec"><h2>${zh("يومك")}</h2><span class="pprog"><i style="width:${Math.round(n/T.length*100)}%"></i></span><span class="hint">${n} من ${T.length}</span></div>${T.map(x=>`<div class="ptask ${x.done?"done":""}"><button class="pchk" data-a="planDone" data-k="${x.k}" aria-pressed="${x.done}" aria-label="${x.done?"رجّعها":"خلّصتها"}">${x.done?svg("check"):""}</button><button class="ptxt" data-a="${x.a}" ${at(x.at)}>${esc(x.t)}</button></div>`).join("")}</section>`}
 
+/* ================================================================ several businesses: pulse, one inbox, quick copies, transfers */
+function wsList(){return A.order.map(id=>A.ws[id]).filter(Boolean)}
+function wsPulse(w){const keep=UI.as;UI.as=null;try{return withWs(w,()=>{const t=today();const M=can("money")||can("orders");const sales=S.tx.filter(x=>x.kind==="sale"&&x.date===t);
+  return {w,role:me().role,n:sales.length,v:r2(sales.reduce((s,x)=>s+(+x.amount||0),0)),money:M,cur:CUR,al:alerts(),open:S.orders.filter(o=>["new","preparing"].includes(o.status)).length}})}finally{UI.as=keep}}
+function pulseLine(p){const a=[];a.push(p.n?`اليوم ${p.n} ${p.n===1?"بيعة":"بيعات"}${p.money?` بـ ${nf(p.v)} ${p.cur}`:""}`:"ما استفتح اليوم");const pl=(n,one,few,many)=>n===1?one:n<=10?`${n} ${few}`:`${n} ${many}`;if(p.open)a.push(pl(p.open,"طلب ينتظر","طلبات تنتظر","طلب ينتظر"));if(p.al.length)a.push(pl(p.al.length,"تنبيه","تنبيهات","تنبيه"));return a.join(" · ")}
+function wsInbox(){const out=[];wsList().forEach(w=>{const p=wsPulse(w);p.al.forEach(a=>out.push({w,a}))});return out.sort((x,z)=>z.a[0]-x.a[0]).slice(0,6)}
+function sameCur(w){return (COUNTRIES[w.biz.country]||COUNTRIES.SA).cur===CTRY().cur}
+/* which business a spoken or typed sentence is really about, by product names */
+function itemHits(text){const T=norm(text);return S.items.filter(i=>i.kind!=="raw"&&i.kind!=="pack"&&[i.name].concat(i.alias||[]).some(a=>a&&norm(a).length>2&&T.includes(norm(a)))).length}
+function wsGuess(text){if(!A||A.order.length<2||!text)return null;const cur=itemHits(text);let best=null,bh=cur;wsList().forEach(w=>{if(w.id===S.id)return;const h=withWs(w,()=>itemHits(text));if(h>bh){bh=h;best=w}});return best}
+function wsCopySheet(){
+  openSheet(sh("نشاط جديد بنسخة")+`<p class="hint" style="margin-bottom:10px">فرع ثاني أو متجر جديد بنفس المنتجات؟ أنسخ لك الأساس في ثواني، وتعدّل بعدين.</p>
+   <div class="field"><label for="wcName">اسم النشاط الجديد</label><input id="wcName" placeholder="مثال: ${esc(S.biz.name)} - فرع جدة" autocomplete="off"></div>
+   <div class="field"><label for="wcFrom">انسخ من</label><select id="wcFrom">${wsList().map(w=>`<option value="${w.id}" ${w.id===S.id?"selected":""}>${esc(w.biz.name)}</option>`).join("")}</select></div>
+   <div class="field"><span class="flabel">وش أنسخ؟</span>${[["items","المنتجات والأسعار والوحدات والوصفات (الكميات تبدأ من صفر)",1],["team","الفريق وصلاحياتهم",1],["brand","الشعار والألوان وسياسة المتجر",1],["links","ربط سلة وزد",0]].map(([k,n,on])=>`<label class="ckrow"><input type="checkbox" id="wc_${k}" ${on?"checked":""}><span>${n}</span></label>`).join("")}</div>
+   <p class="hint">العمليات والعملاء والفلوس ما تنتسخ. كل نشاط حساباته لحاله.</p>
+   <div class="sticky"><button class="btn pri big block" data-a="wsCopyDo">${svg("plus")} أنشئ النشاط</button></div>`)}
+function wsCopyDo(){
+  const name=(($("#wcName")||{}).value||"").trim();if(!name){toast("اكتب اسم النشاط");$("#wcName").focus();return}
+  if(wsList().some(w=>normName(w.biz.name)===normName(name))){toast("عندك نشاط بنفس الاسم");return}
+  const src=A.ws[$("#wcFrom").value]||S;const ck=k=>!!($("#wc_"+k)||{}).checked;const cp=x=>x==null?x:JSON.parse(JSON.stringify(x));
+  const mine=me();const w=blankWs({name,type:src.biz.type,country:src.biz.country,vat:src.biz.vat,me:mine.name,role:"owner",demo:src.demo});
+  ["ch","caps","owner","phone","addr","goal"].forEach(k=>{if(src.biz[k]!=null)w.biz[k]=cp(src.biz[k])});
+  if(ck("items"))w.items=src.items.map(i=>Object.assign(cp(i),{oq:0}));
+  if(ck("team")){w.team=cp(src.team);w.meId=src.meId}
+  if(ck("brand")){if(src.brand)w.brand=cp(src.brand);if(src.store)w.store=Object.assign(cp(src.store),{chk:{},gen:{}});try{const lg=localStorage.getItem("zubda-logo-"+src.id);if(lg)localStorage.setItem("zubda-logo-"+w.id,lg)}catch(e){}}
+  if(ck("links"))w.links=cp(src.links||{});
+  w.log.push({ts:Date.now(),by:w.meId,t:`أنشأ النشاط نسخة من «${src.biz.name}»`});
+  addWs(w);UI.tab="home";UI.month=thisMonth();closeSheet();commit([]);render();window.scrollTo(0,0);toast(`جاهز «${name}» ✓ ${w.items.length?`فيه ${w.items.length} منتج`:""}`)}
+function xferSheet(){const to=wsList().filter(w=>w.id!==S.id&&sameCur(w));if(!to.length){toast(A.order.length>1?"أنشطتك الثانية بعملة ثانية":"أضف نشاط ثاني أول");return}
+  const acc=payFor("draw").filter(p=>!["credit","split","platform"].includes(p));UI.xf={to:to[0].id,amt:"",from:acc.includes("bank")?"bank":acc[0],into:"bank",acc};drawXfer()}
+function drawXfer(){const x=UI.xf;const to=wsList().filter(w=>w.id!==S.id&&sameCur(w));const ok=+x.amt>0;
+  sheetHTML(sh("تحويل بين أنشطتك")+`<div class="field"><span class="flabel">من «${esc(S.biz.name)}» إلى</span><div class="chips">${to.map(w=>`<button class="chip ${x.to===w.id?"on":""}" data-a="xfTo" data-v="${w.id}">${esc(w.biz.name)}</button>`).join("")}</div></div>
+   <div class="field ${ok?"":"need"}"><label for="xfAmt">المبلغ</label><input id="xfAmt" class="bigin" type="number" inputmode="decimal" min="0" step="0.01" value="${esc(x.amt)}" placeholder="0"></div>
+   <div class="field"><span class="flabel">طلعت من</span><div class="chips">${x.acc.map(p=>`<button class="chip ${x.from===p?"on":""}" data-a="xfFrom" data-v="${p}">${PAYS[p].n}</button>`).join("")}</div></div>
+   <div class="field"><span class="flabel">ودخلت في</span><div class="chips">${x.acc.map(p=>`<button class="chip ${x.into===p?"on":""}" data-a="xfInto" data-v="${p}">${PAYS[p].n}</button>`).join("")}</div></div>
+   <p class="hint">${svg("info")} تنسجل «سحب شخصي» هنا و«إيداع من المالك» هناك، عشان ربح كل نشاط يبقى صحيح وما يتلخبط.</p>
+   <div class="sticky"><button class="btn pri big block" data-a="xfDo" ${ok?"":"disabled"}>${svg("swap")} حوّل</button></div>`)}
+function xferDo(){const x=UI.xf;const w=A.ws[x.to];const amt=r2(+x.amt);if(!w||!(amt>0))return;
+  const t=toTx(prepDraft(blankDraft({kind:"draw",amount:amt,pay:x.from,note:`تحويل إلى «${w.biz.name}»`,src:"xfer"})));t.ts=Date.now();t.mirTo=w.id;S.tx.push(t);
+  const nt={id:uid(),ts:Date.now(),kind:"capital",date:t.date,amount:amt,pay:x.into,src:"xfer",by:w.meId||"me",text:"",note:`تحويل من «${S.biz.name}»`,mir:t.id};w.tx.push(nt);w.updated=Date.now();dirtyM.add(w.id+"~"+mKey(nt.date));
+  w.log.unshift({ts:Date.now(),by:w.meId||"me",t:`استلم تحويل من «${S.biz.name}» بـ ${moneyT(amt)}`});logAct(`حوّل ${moneyT(amt)} إلى «${w.biz.name}»`);
+  UI.xf=null;commit([mKey(t.date)]);closeSheet();render();toast(`حوّلت ${moneyT(amt)} إلى «${w.biz.name}» ✓`,{type:"add",ids:[t.id]})}
+
+/* ================================================================ زبدة متجرك: store health + ready-made product content for online stores */
+function sto(){if(!S.store)S.store={free:null,fee:null,days:"",ret:"",aud:"all",pays:[],chk:{},gen:{}};const s=S.store;s.chk=s.chk||{};s.gen=s.gen||{};s.pays=s.pays||[];return s}
+function stPays(){const c=S.biz.country;if(c==="EG")return {card:"فيزا / ميزة",fawry:"فوري",vcash:"فودافون كاش",valu:"فاليو",cod:"الدفع عند الاستلام"};
+  return Object.assign(c==="SA"?{mada:"مدى"}:{},{card:"فيزا / ماستركارد",apple:"Apple Pay"},c==="SA"?{stc:"STC Pay"}:{},{tabby:"تابي",tamara:"تمارا",bank:"تحويل بنكي",cod:"الدفع عند الاستلام"})}
+const AUD={all:"الكل",f:"نساء",m:"رجال"};
+/* marketing verbs follow the store's audience; "all" keeps the common form */
+function tone(s){if(sto().aud!=="f")return s;return String(s).replace(/(^|[\s«])(اطلب|احجز|علّق|تابعنا|وفّر|جرّب|تختار|اختار|قسّطها|تسوّق)(?=[\s؟!.،»]|$)/g,(m,a,w)=>a+({اطلب:"اطلبي",احجز:"احجزي",علّق:"علّقي",تابعنا:"تابعينا",وفّر:"وفّري",جرّب:"جرّبي",تختار:"تختارين",اختار:"اختاري",قسّطها:"قسّطيها",تسوّق:"تسوّقي"})[w])}
+function daysMax(){const m=String(sto().days||"").match(/\d+/g);return m?Math.max(...m.map(Number)):null}
+function shipLine(){const s=sto();const a=[];if(s.days)a.push(`التوصيل خلال ${s.days} أيام عمل`);if(+s.free>0)a.push(`والشحن مجاني فوق ${nf(s.free)} ${CUR}`);else if(+s.fee>0)a.push(`ورسوم الشحن ${nf(s.fee)} ${CUR}`);return a.length?a.join(" ")+".":""}
+function payLine(){const P=stPays();const l=sto().pays.filter(k=>P[k]).map(k=>P[k]);return l.length?l.join("، "):""}
+const KCONT={
+  lux:{hook:"ريحة فخمة تثبت وتلفت الانتباه",kw:"عطور وبخور",use:["التخزين في علبته بعيد عن الشمس والحرارة يحافظ على ريحته"],useBy:[[/دهن|عطر|مسك|زيت|بخاخ/,["نقطة أو رشّة على النبض وخلف الأذن تثبت أطول","على الملابس والشماغ تدوم أكثر من الجلد","التخزين بعيد عن الشمس والحرارة يحافظ على ريحته"]],[/مبخر/,["الجمرة على الشبك مو على الفخار مباشرة","التنظيف بعد ما تبرد بفرشاة ناعمة"]],[/بخور|معمول|دخون|عود|جمر/,["على جمرة هادية وبكمية قليلة يفوح أحلى وما يحترق","التبخير بعد التنظيف تثبت الريحة في البيت أطول","التخزين في علبة محكمة يحافظ على ريحته"]]],faq:[["كم تثبت الريحة؟","تختلف حسب الاستخدام، وعلى الملابس تثبت أطول من الجلد."],["يناسب الهدايا؟","أكيد، يوصل بتغليف أنيق وتقدر تكتب الإهداء في ملاحظات الطلب."]]},
+  chic:{hook:"قصّة مريحة وخامة تعيش معك",kw:"عبايات وأزياء",use:["الغسيل على دورة هادية وبماء بارد","الكوي على حرارة متوسطة ومن الداخل","التعليق على شمّاعة عريضة يحافظ على القصّة"],faq:[["كيف أختار المقاس؟","جدول المقاسات تحت الصور، ولو بين مقاسين الأفضل الأكبر."],["اللون مثل الصور؟","صوّرناه بإضاءة طبيعية، وقد يختلف بسيط حسب الشاشة."]]},
+  sweet:{hook:"طعم طازج يبيّض الوجه مع الضيوف",kw:"حلويات وتمور وقهوة",use:["يحفظ في علبة محكمة بمكان بارد","يكمل الضيافة مع القهوة العربية","أطيب لو طلع من الثلاجة قبل التقديم بربع ساعة"],faq:[["كم مدة الصلاحية؟","مكتوبة على العلبة، والأفضل خلال أسبوعين من الاستلام."],["يوصل طازج؟","نجهّزه يوم الشحن ونغلّفه بطريقة تحافظ على طعمه."]]},
+  fresh:{hook:"طازج ومختار بعناية",kw:"ورد وهدايا",use:["يفتح أول ما يوصل ويحط في مكان بارد","قص الساق مايل وتغيير الماء كل يومين يطوّل عمر الورد"],faq:[["متى يوصل؟","نفس اليوم أو اليوم اللي بعده حسب المنطقة."],["أقدر أضيف بطاقة إهداء؟","أكيد، اكتب الإهداء في ملاحظات الطلب."]]},
+  bold:{hook:"طعم يخليك ترجع تطلب",kw:"مطاعم وأكل",use:["لو برد، دقيقتين في المايكرويف ويرجع مثل أول","أطيب مع الصوص الخاص"],faq:[["كم وقت التجهيز؟","نجهّز الطلب خلال 20 دقيقة تقريبًا."],["فيه خيار بدون حار؟","اكتب ملاحظتك مع الطلب ونجهّزه مثل ما تحب."]]},
+  tech:{hook:"أصلي ومضمون",kw:"جوالات وإلكترونيات",use:["الشاحن الأصلي يطوّل عمر البطارية","اللاصق والكفر من أول يوم يوفّر عليك كثير"],faq:[["المنتج أصلي؟","كل منتجاتنا أصلية ومعها فاتورة."],["فيه ضمان؟","الضمان حسب الشركة المصنعة ومكتوب في صفحة المنتج."]]},
+  soft:{hook:"عناية تبان من أول استخدام",kw:"تجميل وعناية",use:["التجربة على جزء صغير قبل أول استخدام","الاستخدام المنتظم يبيّن النتيجة أسرع"],faq:[["يناسب البشرة الحساسة؟","المكونات مكتوبة في الصفحة، ومع الحساسية الأفضل تجربة جزء صغير أول."],["المنتج أصلي؟","كل منتجاتنا أصلية ومن مصادر موثوقة."]]},
+  zb:{hook:"جودة تستاهل وسعر يرضيك",kw:"منتجات",use:["قراءة التعليمات المرفقة قبل الاستخدام"],faq:[["المنتج مثل الصور؟","صوّرنا المنتج الحقيقي، وأي استفسار كلمنا قبل الطلب."]]}
+};
+function fitLen(s,n){s=String(s).replace(/\s+/g," ").trim();if(s.length<=n)return s;const c=s.slice(0,n-1);const i=c.lastIndexOf(" ");return (i>n*.6?c.slice(0,i):c).replace(/[،,.\-|]+$/,"")+"…"}
+function stoGen(it){const s=sto();const K=KCONT[KIT_OF[S.biz.type]||"zb"]||KCONT.zb;const biz=S.biz.name;const P=+it.price||0;const pk=(it.packs||[]).filter(p=>+p.q>1);const pay=payLine();
+  const desc=[`${it.name} من ${biz}: ${K.hook}.`,pk.length?`متوفر بال${it.unit} أو ${pk.map(p=>`${p.n} (${nf(p.q)} ${it.unit})`).join(" أو ")}، والكمية أوفر.`:"",shipLine(),s.ret?s.ret.replace(/[.]$/,"")+".":"",pay?`الدفع: ${pay}.`:""].filter(Boolean).join("\n");
+  const faq=K.faq.concat([s.days?["كم مدة التوصيل؟",`خلال ${s.days} أيام عمل حسب المدينة${+s.free>0?`، والشحن مجاني للطلبات فوق ${nf(s.free)} ${CUR}`:""}.`]:null,pay?["وش طرق الدفع؟",pay+"."]:null,s.ret?["أقدر أرجّعه؟",s.ret.replace(/[.]$/,"")+"."]:null,pk.length?["فيه سعر للكمية؟",`أكيد، ${pk[0].n} فيها ${nf(pk[0].q)} ${it.unit} وتطلع أوفر من الحبة.`]:null].filter(Boolean));
+  let seoT=`${it.name} | ${biz}`;if(seoT.length<42)seoT+=` | ${K.kw}`;seoT=fitLen(seoT,60);
+  const seoD=fitLen(tone(`اطلب ${it.name} من ${biz}${P?` بـ ${nf(P)} ${CUR}`:""}. ${K.hook}.${+s.free>0?` شحن مجاني فوق ${nf(s.free)} ${CUR}.`:s.days?` توصيل خلال ${s.days} أيام.`:""}${s.pays.includes("tabby")||s.pays.includes("tamara")||s.pays.includes("valu")?" وقسّطها بدون فوائد.":s.pays.includes("cod")?" والدفع عند الاستلام متاح.":""}`),155);
+  const ub=(K.useBy||[]).find(([re])=>re.test(it.name));return {desc,use:ub?ub[1]:K.use,faq,seoT,seoD}}
+function stoText(g){return `${g.desc}\n\nطريقة الاستخدام:\n${g.use.map(x=>"• "+x).join("\n")}\n\nأسئلة شائعة:\n${g.faq.map(([q,a])=>`س: ${q}\nج: ${a}`).join("\n")}`}
+function lastSeason(){const c=S.biz.country;for(let i=1;i<=60;i++){const d=new Date();d.setDate(d.getDate()-i);const x=seasonOn(d,c);if(x&&!seasonOn(new Date(d.getTime()+864e5),c))return Object.assign({ago:i},x)}return null}
+function stoSell(){return S.items.filter(i=>(i.kind==="goods"||i.kind==="made")&&+i.price>0)}
+function codStats(){const C=S.orders.filter(o=>!o.paid&&(o.status==="delivered"||o.refused));const r=C.filter(o=>o.refused).length;return {n:C.length,r,rate:C.length?r/C.length:0}}
+function stalePosts(){const seen={};return (S.posts||[]).slice().reverse().filter(p=>{if(!p.item||p.ip==null||seen[p.item])return false;seen[p.item]=1;const it=itemById(p.item);return it&&+it.price>0&&Math.abs(+it.price-p.ip)>.009&&daysBetween(p.date,today())<=60}).map(p=>({p,it:itemById(p.item)}))}
+function stoHealth(){
+  const s=sto();const C=[];const sell=stoSell();const SA=S.biz.country==="SA";
+  const dm=daysMax();C.push({k:"ship",ok:!!s.days&&(s.fee!=null&&s.fee!==""||+s.free>0),t:"سياسة الشحن واضحة",d:s.days?`مكتوب: ${shipLine()}`:"اكتب مدة التوصيل الحقيقية ورسومها تحت. عبارة «في وقت قياسي» بدون أيام ترفع رفض الاستلام.",go:"stoPol"});
+  if(dm)C.push({k:"promise",ok:dm<=7||!!s.chk.promise,man:dm>7,t:"وعد التوصيل نفسه في كل مكان",d:dm>7?`مدة التوصيل توصل لـ${dm} يوم. تأكد إن الصفحة الرئيسية ورسالة تأكيد الطلب تقول نفس المدة، مو «توصيل سريع».`:"مدة التوصيل معقولة."});
+  const cd=codStats();if(cd.n)C.push({k:"cod",ok:cd.rate<=.1,t:"رفض الاستلام تحت 10%",d:`${cd.r} من ${cd.n} طلب دفع عند الاستلام انرفض (${Math.round(cd.rate*100)}%)${cd.rate>.1?". رسالة تأكيد قبل الشحن فيها المدة والمبلغ تقلّله كثير.":"."}`,go:cd.rate>.1?"tab":null,at:{t:"orders"}});
+  const ph=sell.filter(i=>hasPhoto(i.id)).length;C.push({k:"photos",ok:sell.length>0&&ph>=Math.ceil(sell.length*.8),t:"صور لكل منتج",d:`${ph} من ${sell.length} منتج لها صورة في زبدة. الصورة الحقيقية تبيع أكثر وتطلع في منشوراتك.`,go:"tab",at:{t:"studio"}});
+  const gn=sell.filter(i=>s.gen[i.id]).length;C.push({k:"content",ok:sell.length>0&&gn>=Math.ceil(sell.length*.8),t:"وصف وأسئلة شائعة لكل منتج",d:`جهّزت محتوى ${gn} من ${sell.length}. الأسئلة الشائعة تقلّل أسئلة الواتساب وترفع ظهورك في قوقل.`,go:"stoNext"});
+  const sp=stalePosts();C.push({k:"prices",ok:!sp.length,t:"الأسعار في صورك مثل أسعارك",d:sp.length?sp.slice(0,2).map(x=>`${x.it.name}: المنشور ${nf(x.p.ip)} والسعر الحين ${nf(x.it.price)}`).join(" · ")+". حدّث المنشور أو البنر.":"منشورات زبدة تاخذ السعر الحي، فما تختلف. تجنّب كتابة الأسعار على الصور يدويًا.",go:sp.length?"stIdea":null,at:{v:"0"}});
+  const ls=lastSeason();if(ls)C.push({k:"season",man:true,ok:!!s.chk["season-"+ls.n],t:`شلت عروض «${ls.n}»؟`,d:`${ls.n} خلص من ${ls.ago} يوم. البنر والتصنيف القديم يخلي المتجر يبان مهمل. بدّله بعرض الموسم اللي جاي.`});
+  [["share","صورة مشاركة الرابط 1200×630","لما ينرسل رابط متجرك في الواتساب، تطلع صورة عرض مو الشعار بس. صمّمها من «صورة الرابط» في زبدة تسويقك."],["banner","بنر خاص بالجوال","أغلب الزوار من الجوال. بنر بمقاس 1080×1350 أوضح بكثير من البنر العريض."],["wa","زر واتساب ما يغطي زر الشراء","في الجوال، الزر العايم أحيانًا يغطي «أضف للسلة». جرّبه بنفسك من جوالك."],["brand","الأوصاف ما تذكر ماركة أو متجر ثاني","وصف منسوخ فيه اسم ماركة ثانية يضيّع الثقة ويضر الظهور في قوقل."],["pix","أكواد التتبع: بس اللي تستخدمها","كل بكسل أو كود زيادة يبطّئ المتجر. شيل اللي ما تحتاجه من إعدادات المتجر."]].concat(SA?[["sbc","توثيق المركز السعودي للأعمال","صفحة التوثيق لازم تبين رقمك. الصفحة الفاضية تقلّل الثقة عند أول طلب."]]:[]).forEach(([k,t,d])=>C.push({k,man:true,ok:!!s.chk[k],t,d}));
+  const ok=C.filter(c=>c.ok).length;return {C,ok,score:C.length?Math.round(ok/C.length*100):0,next:C.find(c=>!c.ok)||null}}
+function aov(){const t=today();const g={};S.tx.filter(x=>x.kind==="sale"&&daysBetween(x.date,t)<=30).forEach(x=>{const k=x.ord||x.inv||x.id;g[k]=(g[k]||0)+(+x.amount||0)});const v=Object.values(g);return v.length?r2(v.reduce((a,b)=>a+b,0)/v.length):0}
+function stoRing(p){const c=p>=80?"var(--green)":p>=50?"var(--butter2)":"var(--coral)";const r=42,L=2*Math.PI*r;return `<svg class="hring" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="${r}" fill="none" stroke="var(--line)" stroke-width="10"/><circle cx="50" cy="50" r="${r}" fill="none" stroke="${c}" stroke-width="10" stroke-linecap="round" stroke-dasharray="${(L*p/100).toFixed(1)} ${L.toFixed(1)}" transform="rotate(-90 50 50)"/></svg>`}
+function vStore(){
+  const s=sto();const H=stoHealth();const sell=stoSell();UI.sto=UI.sto||{};if(!UI.sto.it||!itemById(UI.sto.it))UI.sto.it=(sell.find(i=>!s.gen[i.id])||sell[0]||{}).id||null;
+  let h=subBand(zh("متجرك"),"صحة متجرك، ومحتوى جاهز لكل منتج")+`<main class="view gut">`;
+  h+=`<section class="card hcard"><div class="hhead"><div class="hscore">${stoRing(H.score)}<b class="num">${H.score}%</b></div><div><h2>صحة متجرك</h2><p class="hint">${H.ok} من ${H.C.length} تمام${H.next?`. ابدأ بـ«${esc(H.next.t)}»`:". متجرك في أحسن حال 🏆"}</p></div></div>
+    <div class="hlist">${H.C.map(c=>`<div class="hrow ${c.ok?"ok":""}">${c.man?`<button class="hchk" data-a="stoChk" data-k="${c.k==="season"?"season-"+esc((lastSeason()||{}).n||""):c.k}" aria-pressed="${c.ok}" aria-label="${c.ok?"رجّعها":"تم"}">${c.ok?svg("check"):""}</button>`:`<span class="hic">${svg(c.ok?"check":"alert")}</span>`}<div class="hbody"><b>${esc(c.t)}</b><span class="hint">${esc(c.d)}</span></div>${!c.ok&&c.go?`<button class="btn sm" data-a="${c.go}" ${Object.entries(c.at||{}).map(([k,v])=>`data-${k}="${esc(v)}"`).join(" ")}>صلّحها</button>`:""}</div>`).join("")}</div></section>`;
+  const P=stPays();
+  h+=`<section class="card" id="stoPol"><div class="sec"><h2>سياسة متجرك</h2><span class="hint">تطلع في الأوصاف والمنشورات</span></div>
+    <div class="g2"><div class="field"><label for="stoDays">مدة التوصيل (أيام)</label><input id="stoDays" value="${esc(s.days)}" placeholder="2-5" inputmode="numeric"></div><div class="field"><label for="stoFee">رسوم الشحن</label><input id="stoFee" type="number" inputmode="decimal" min="0" value="${s.fee!=null?esc(s.fee):""}" placeholder="25"></div></div>
+    <div class="g2"><div class="field"><label for="stoFree">شحن مجاني فوق</label><input id="stoFree" type="number" inputmode="decimal" min="0" value="${s.free!=null?esc(s.free):""}" placeholder="299"></div><div class="field"><label for="stoRet">الاسترجاع</label><input id="stoRet" value="${esc(s.ret)}" placeholder="استرجاع خلال 7 أيام"></div></div>
+    <div class="field"><span class="flabel">طرق الدفع في متجرك</span><div class="chips">${Object.entries(P).map(([k,n])=>`<button class="chip ${s.pays.includes(k)?"on":""}" data-a="stoPay" data-v="${k}" aria-pressed="${s.pays.includes(k)}">${esc(n)}</button>`).join("")}</div></div>
+    <div class="field"><span class="flabel">تخاطب مين؟</span><div class="seg2" role="group" aria-label="الجمهور">${Object.entries(AUD).map(([k,n])=>`<button class="${s.aud===k?"on":""}" data-a="stoAud" data-v="${k}">${n}</button>`).join("")}</div></div></section>`;
+  const av=aov();if(+s.free>0&&av>0&&av<s.free){const gap=r2(s.free-av);const add=sell.filter(i=>+i.price>=gap*.6).sort((a,z)=>a.price-z.price)[0];h+=`<section class="card"><div class="say">${mascot("wow",52)}<div class="bubble">متوسط طلبك ${moneyT(av)} والشحن المجاني فوق ${moneyT(s.free)}. ${gap<=s.free*.35?`قريب! ${add?`اقترح «${esc(add.name)}» مع كل طلب، أو `:""}سوّ باقة بـ ${moneyT(s.free)} وخل العميل يكمّل سلته بدل ما يدفع شحن.`:`الفرق كبير، فكّر تنزّل حد الشحن المجاني لـ ${moneyT(Math.ceil(av*1.25/10)*10)}. يرفع السلة بدون ما يخسرك.`}</div></div></section>`}
+  if(!sell.length)return h+`<section class="card"><div class="empty">${mascot("happy",64)}<p>أضف منتجاتك بأسعارها، وأكتب لك وصف وأسئلة شائعة وعنوان قوقل لكل منتج.</p><button class="btn pri" data-a="itemNew">${svg("plus")} أضف منتج</button></div></section></main>`;
+  const it=itemById(UI.sto.it);const g=UI.sto.g&&UI.sto.gFor===it.id?UI.sto.g:stoGen(it);
+  const blk=(id,lab,txt,max)=>`<div class="cblk"><div class="sec"><h3>${lab}</h3>${max?`<span class="tag ${txt.length>max?"bad":"good"} num">${txt.length}/${max}</span>`:""}<button class="link" data-a="stoCopy" data-v="${id}">${svg("copy")} انسخ</button></div><div class="ctext" id="sto_${id}">${esc(txt).replace(/\n/g,"<br>")}</div></div>`;
+  h+=`<section class="card"><div class="sec"><h2>محتوى المنتج</h2><span class="hint">${Object.keys(s.gen).filter(k=>itemById(k)).length} من ${sell.length} جاهز</span></div>
+    <div class="chips scroll" role="group" aria-label="المنتج">${sell.map(i=>`<button class="chip ${i.id===it.id?"on":""}" data-a="stoIt" data-v="${i.id}">${s.gen[i.id]?svg("check")+" ":""}${esc(shortName(i.name,18))}</button>`).join("")}</div>
+    ${blk("desc","الوصف",g.desc)}${blk("use","طريقة الاستخدام",g.use.map(x=>"• "+x).join("\n"))}${blk("faq","أسئلة شائعة",g.faq.map(([q,a])=>`س: ${q}\nج: ${a}`).join("\n"))}
+    ${blk("seoT","عنوان الصفحة في قوقل",g.seoT,60)}${blk("seoD","وصف الصفحة في قوقل",g.seoD,155)}
+    <div class="btns"><button class="btn pri" data-a="stoCopy" data-v="all">${svg("copy")} انسخ الكل</button>${AI?`<button class="btn" data-a="stoAI">${svg("spark")} اكتبها زبدة أحلى</button>`:""}</div>
+    <p class="hint">${svg("info")} مكتوب بأسلوب متاجر ${esc((KITS[KIT_OF[S.biz.type]||"zb"]||KITS.zb).n)}، ومن سياسة متجرك فوق. راجع أي معلومة عن المنتج قبل النشر.</p></section>`;
+  h+=`<section class="card"><p class="hint">${svg("star")} زبدة متجرك ضمن باقة «نمو». في النسخة الكاملة: نقرأ متجرك في ${platKeys().map(p=>PLATS[p].n).join(" أو ")||"سلة أو زد"} ونفحص السرعة والصور والأسعار والتصنيفات لحالها، وننشر الأوصاف بضغطة.</p></section>`;
+  return h+`</main>`;
+}
+function stoMark(id){const s=sto();if(!s.gen[id]){const before=stoHealth().score;s.gen[id]=today();commit([]);const after=stoHealth().score;if(after>before)toast(`صحة متجرك صارت ${after}% ✓`)}}
+function stoCheckAct(k){const s=sto();const before=stoHealth().score;s.chk[k]=!s.chk[k];commit([]);const after=stoHealth().score;
+  if(after===100&&before<100)zAdd({f:"z",mood:"proud",t:"صحة متجرك 100%! 🏆 كذا العميل يطلب وهو مرتاح. أراجعها معك كل شهر.",acts:[]});else if(after>before)toast(`صحة متجرك صارت ${after}% ✓`);render()}
+function drawWide(cv,idea,kit){
+  const W=1200,H=630;cv.width=W;cv.height=H;const g=cv.getContext("2d");const F='"IBM Plex Sans Arabic",Tahoma,sans-serif';const HF=`"${kit.hf}","IBM Plex Sans Arabic",sans-serif`;
+  const gr=g.createLinearGradient(0,0,W,H);gr.addColorStop(0,kit.bg);gr.addColorStop(1,kit.bg2);g.fillStyle=gr;g.fillRect(0,0,W,H);drawPattern(g,kit,W,H);g.direction="rtl";
+  const it=idea.it||(idea.list&&idea.list[0])||null;const ax=70,ay=70,aw=460,ah=490;
+  drawItemArt(g,kit,it,ax,ay,aw,ah,kit.frame==="circle"||kit.frame==="scallop"?"circle":kit.frame==="arch"?"arch":"round",it?photoImg(it.id):null);
+  const R=W-80;g.textAlign="right";let y=104;const logo=logoImg();
+  if(logo){const s=Math.min(130/logo.width,80/logo.height);g.drawImage(logo,R-logo.width*s,y-62,logo.width*s,logo.height*s);y+=36}else{g.fillStyle=kit.ink;g.font=`700 40px ${HF}`;g.fillText(S.biz.name,R,y);y+=24}
+  g.font=`700 30px ${F}`;const tw=g.measureText(idea.tag).width+50;rr(g,R-tw,y+12,tw,52,26);g.strokeStyle=kit.acc;g.lineWidth=3;g.stroke();g.fillStyle=kit.acc;g.fillText(idea.tag,R-25,y+48);y+=128;
+  const main=idea.lay==="hero"&&idea.it&&idea.k!=="dish"?idea.it.name:idea.title;g.fillStyle=kit.ink;g.font=`700 ${idea.lay==="quote"?50:60}px ${HF}`;wrapLines(g,main,560).slice(0,idea.lay==="quote"?3:2).forEach(l=>{g.fillText(l,R,y);y+=idea.lay==="quote"?64:72});
+  if(idea.lay==="trust"){g.font=`600 31px ${F}`;idea.rows.slice(0,3).forEach(r=>{g.fillStyle=kit.acc;g.fillText("✓",R,y);g.fillStyle=kit.ink;g.fillText(shortName(r,32),R-42,y);y+=46})}
+  else if(idea.lay==="list"){g.font=`600 31px ${F}`;idea.list.slice(0,3).forEach(x=>{g.fillStyle=kit.ink;g.fillText(`${shortName(x.name,18)}  ·  ${nf(x.price)} ${CUR}`,R,y);y+=46})}
+  else if((idea.lay==="hero"&&idea.k!=="dish"||idea.lay==="offer")&&idea.it){g.font=`500 32px ${F}`;g.globalAlpha=.85;g.fillText(idea.lay==="offer"?shortName(idea.it.name,30):idea.title,R,y);g.globalAlpha=1;y+=44}
+  if(idea.price&&idea.lay!=="list"&&idea.k!=="poll"){const pt=`${nf(idea.price)} ${CUR}`;g.font=`800 60px "Baloo Bhaijaan 2","IBM Plex Sans Arabic",sans-serif`;const pw=g.measureText(pt).width+66;g.textAlign="center";pricePill(g,kit,pt,R-pw/2,y+34,60);g.textAlign="right";
+    if(idea.old){g.font=`600 30px ${F}`;g.fillStyle=kit.ink;g.globalAlpha=.65;const ot=`بدل ${nf(idea.old)}`;const ow=g.measureText(ot).width;g.fillText(ot,R-pw-26,y+40);g.fillRect(R-pw-26-ow,y+29,ow,3);g.globalAlpha=1}}
+  g.font=`700 32px ${F}`;const fw=Math.min(600,g.measureText(idea.cta).width+70);rr(g,R-fw,H-118,fw,68,34);g.fillStyle=kit.acc;g.fill();g.fillStyle=kit.on;g.textAlign="center";g.fillText(idea.cta,R-fw/2,H-73);
+  const handle=(S.brand&&S.brand.handle)?"@"+String(S.brand.handle).replace(/^@/,""):"";if(handle||S.biz.phone){g.fillStyle=kit.ink;g.globalAlpha=.75;g.font=`500 26px ${F}`;g.direction="ltr";g.textAlign="left";g.fillText(handle||S.biz.phone,ax,H-26);g.globalAlpha=1}
+}
+
 /* ================================================================ زبدة يسولف: a chatty companion with a Gulf personality, driven by your real numbers */
 const ZJOKES=["أقصر قصة رعب للتاجر: «الشبكة طايحة» 😅","العميل اللي يقول «بمر عليك بكرة»… بكرته لين الحين ما جت 😂","سألوا البخور: ليش دايم رايق؟ قال: كل همّي يطلع دخان 😄","التاجر الشاطر يحسب ربحه، والأشطر يخلي زبدة تحسبه وهو يشرب قهوته ☕","قالوا للدفتر القديم: وين راحت الفلوس؟ قال: اسألوا زبدة، أنا كنت ضايع مثلكم","أحلى عرض في الدنيا: «اشترِ واحد وخذ ابتسامة مجانًا» 😁","الكاشير قال للآلة الحاسبة: أنتِ الوحيدة اللي تفهميني بالأرقام","المسك قال للمخزن: لا تحبسني، أنا خلقت أنتشر 🌸","أصعب سؤال يسأله العميل: «آخر سعر كم؟»… وهو أول مرة يسأل 😅","الربح مثل العود: كل ما صبرت عليه، ريحته أحلى"];
-const ZQ={studio:"صمّم لي منشور",day:"كيف يومي؟",sell:"وش أبيع اليوم؟",guess:"خمّن مبيعات أمس",joke:"عطني نكتة",best:"وش أكثر شي ربّحني؟",cust:"مين أفضل عميل؟",help:"وش تقدر تسوي؟"};
+const ZQ={studio:"صمّم لي منشور",store:"كيف متجري؟",day:"كيف يومي؟",sell:"وش أبيع اليوم؟",guess:"خمّن مبيعات أمس",joke:"عطني نكتة",best:"وش أكثر شي ربّحني؟",cust:"مين أفضل عميل؟",help:"وش تقدر تسوي؟"};
 function zName(){const n=me().name;return n&&n!=="أنت"?n.split(" ")[0]:""}
 function zChat(){if(!S.chat)S.chat=[];return S.chat}
 function zAdd(m){const c=zChat();m.ts=Date.now();m.id=uid();m.fresh=m.f==="z";c.push(m);if(c.length>40)S.chat=c.slice(-40);commit([])}
@@ -3081,8 +3257,9 @@ function zAnswer(k){
   if(k==="cust"){if(!(can("people")||can("profit")))return {f:"z",mood:"happy",t:"بيانات العملاء مو متاحة لدورك 🙂",acts:[]};const m=thisMonth();const top=Object.values(custStats()).map(c=>({c,s:S.tx.filter(x=>x.kind==="sale"&&mKey(x.date)===m&&normName(x.party||"")===c.key).reduce((a,x)=>a+(+x.amount||0),0)})).sort((a,z)=>z.s-a.s)[0];
     return top&&top.s>0?{f:"z",mood:"proud",t:`أفضل عميل هالشهر: ${top.c.name} 👑\n${M?`مشتريات هالشهر ${moneyT(top.s)}. `:""}رسالة شكر أو خصم صغير تقوّي العلاقة.`,acts:[["ملف العميل","cust",{k:top.c.key}],["جهّز عرض","offer",{k:"vip"}]]}:{f:"z",mood:"happy",t:"سجّل أسماء العملاء في المبيعات وأقول لك مين أفضلهم.",acts:[]}}
 
+  if(k==="store"){const H=stoHealth();return {f:"z",mood:H.score>=80?"proud":"worry",t:`صحة متجرك ${H.score}% ${H.score>=80?"💪":"🩺"}\n${H.next?`أهم شي الحين: ${H.next.t}.\n${H.next.d}`:"كل شي تمام، متجرك جاهز يستقبل الطلبات."}`,acts:[["افتح صحة متجرك","tab",{t:"store"}]]}}
   if(k==="studio"){const i=todayIdea();return i?{f:"z",mood:"wow",t:`جهّزت لك منشور اليوم 🎨\n«${i.title}»${i.it&&!i.list?` عن ${i.it.name}`:""}. شوفه وانشره بضغطة.`,acts:[["افتح المنشور","tab",{t:"studio"}]]}:{f:"z",mood:"happy",t:"أضف منتجاتك بأسعارها وأصمم لك منشور كل يوم.",acts:[["أضف منتج","itemNew",{}]]}}
-  return {f:"z",mood:"happy",t:"أقدر:\n• أسجّل عملياتك من كلامك أو صورة\n• أقول لك كيف يومك وأفضل منتج وعميل\n• أطلع لك فرص بيع وعروض\n• وأسولف معك بنكتة إذا ضاق خلقك 😄",acts:[["كيف يومي؟","zq",{q:"day"}],["عطني نكتة","zq",{q:"joke"}]]};
+  return {f:"z",mood:"happy",t:"أقدر:\n• أسجّل عملياتك من كلامك أو صورة\n• أقول لك كيف يومك وأفضل منتج وعميل\n• أطلع لك فرص بيع وعروض\n• أفحص صحة متجرك وأكتب أوصاف منتجاتك\n• وأسولف معك بنكتة إذا ضاق خلقك 😄",acts:[["كيف يومي؟","zq",{q:"day"}],["عطني نكتة","zq",{q:"joke"}]]};
 }
 function zGuess(v){const y=UI.zg;if(y==null)return;UI.zg=null;const ok=Math.abs(v-y)<=Math.max(1,y*.06);zAdd({f:"me",t:nf(v)});zAdd({f:"z",mood:ok?"proud":"wow",t:ok?`صح عليك! 👏 كانت ${nf(y)}. أنت تعرف محلك زين.`:`قريب… كانت ${nf(y)}. ${v>y?"توقعت أكثر، يعني نقدر نكبّرها 💪":"أحسن من توقعك! 🎉"}`,acts:[["كيف يومي؟","zq",{q:"day"}]]});render()}
 function zAsk(k){zAdd({f:"me",t:ZQ[k]||k});zAdd(zAnswer(k));render()}
@@ -3114,7 +3291,7 @@ function zMsg(m){const at=a=>Object.entries(a||{}).map(([k,v])=>`data-${k}="${es
 function zCard(){
   if(S.chatDay!==today()&&!UI.as){S.chatDay=today();zAdd(zGreet())}
   const c=zChat();const last=c.slice(-6);const lz=[...c].reverse().find(m=>m.f==="z");const mood=(lz&&lz.mood)||"happy";
-  const chips=["studio","day","sell","guess","joke"].concat(can("profit")?["best"]:[]).concat(can("people")?["cust"]:[]);
+  const chips=["studio"].concat(prof().ship?["store"]:[],["day","sell","guess","joke"]).concat(can("profit")?["best"]:[]).concat(can("people")?["cust"]:[]);
   return `<section class="card zc" aria-label="سوالف زبدة"><div class="zh">${mascot(mood,46,"bob")}<div class="zt"><b>زبدة</b><small><i></i>تسولف معك عن شغلك</small></div><button class="x sm" data-a="scMute" aria-label="${SC.mute?"شغّل الصوت":"اكتم الصوت"}">${svg(SC.mute?"volx":"vol")}</button><button class="x sm" data-a="zAll" aria-label="كل السوالف">${svg("list")}</button></div>
     <div class="zthread">${last.map(zMsg).join("")}</div>
     <div class="zchips">${chips.map(k=>`<button class="chip" data-a="zq" data-q="${k}">${ZQ[k]}</button>`).join("")}</div>
@@ -3126,7 +3303,7 @@ async function zAnimate(th,g){
   while(alive()&&$("#layer").innerHTML)await sleep(400);
   for(const el of [...th.querySelectorAll(".zm.pend")]){if(!alive())return;const ty=document.createElement("div");ty.className="zm z typing";ty.innerHTML='<div class="zb"><i></i><i></i><i></i></div>';el.before(ty);th.scrollTop=th.scrollHeight;
     await sleep(600+Math.min(900,(el.textContent||"").length*10));if(!alive())return;ty.remove();el.classList.remove("pend");snd("pop");th.scrollTop=th.scrollHeight;await sleep(250)}
-  (S.chat||[]).forEach(m=>m.fresh=false);
+  if(S)(S.chat||[]).forEach(m=>m.fresh=false);
 }
 
 /* ================================================================ render & events */
@@ -3136,7 +3313,7 @@ function render(){
   document.body.className="";applyCountry();
   const guard={orders:can("orders"),customers:can("people")||can("orders"),suppliers:can("suppliers"),log:can("log"),links:can("links")};
   if(guard[UI.tab]===false)UI.tab="home";
-  const V={home:vHome,orders:vOrders,items:vItems,more:vMore,tx:vTx,customers:vCustomers,suppliers:vSuppliers,team:vTeam,log:vLog,links:vLinks,all:vAll,opps:vOpps,plans:vPlans,studio:vStudio};
+  const V={home:vHome,orders:vOrders,items:vItems,more:vMore,tx:vTx,customers:vCustomers,suppliers:vSuppliers,team:vTeam,log:vLog,links:vLinks,all:vAll,opps:vOpps,plans:vPlans,studio:vStudio,store:vStore};
   const names=[...new Set(Object.values(parties()).map(p=>p.name).concat(S.customers.map(c=>c.name),S.suppliers.map(c=>c.name),Object.values(A.ws).filter(w=>w.id!==S.id).map(w=>w.biz.name)))];
   app.innerHTML=(V[UI.tab]||vHome)()+dock()+`<datalist id="plist">${names.map(n=>`<option value="${esc(n)}">`).join("")}</datalist>`;
   decorateMics(app);sceneMountAll();studioMount();
@@ -3188,6 +3365,17 @@ function act(a,el){
     case "stShare":studioShare();break;
     case "stCopy":copyText(($("#stuCap")||{}).value||"");break;
     case "stAI":{const ta=$("#stuCap");if(!ta||!AI)break;el.disabled=true;el.innerHTML=`<span class="spin"></span>`;let out="";AI(`Rewrite this Instagram / WhatsApp status caption for a small business in ${CTRY().n}, in short catchy Gulf Arabic, 3 to 5 lines, keep the prices, phone and hashtags exactly, add one or two fitting emoji. Reply with the caption only.\n\n${ta.value}`,{modelTier:"quick",onText:({text})=>{out=text;ta.value=text}}).then(()=>{UI.st.cap=out||ta.value;UI.st.capFor=UI.st.i}).catch(e=>aiOff(e)).finally(()=>{el.disabled=false;el.innerHTML=`${svg("spark")} اكتبها زبدة أحلى`});break}
+    case "stoPay":{const s=sto();const i=s.pays.indexOf(d.v);if(i>=0)s.pays.splice(i,1);else s.pays.push(d.v);UI.sto.g=null;commit([]);render();break}
+    case "stoAud":sto().aud=d.v;UI.sto.g=null;commit([]);render();break;
+    case "stoChk":stoCheckAct(d.k);break;
+    case "stoIt":UI.sto.it=d.v;UI.sto.g=null;render();break;
+    case "stoPol":{const e=$("#stoPol");if(e)e.scrollIntoView({behavior:"smooth",block:"start"});const x=$("#stoDays");if(x)setTimeout(()=>x.focus({preventScroll:true}),450);break}
+    case "stoNext":{const s=sto();const n=stoSell().find(i=>!s.gen[i.id]);if(n){UI.sto.it=n.id;UI.sto.g=null;render()}const e=document.querySelector(".cblk");if(e)e.closest(".card").scrollIntoView({behavior:"smooth",block:"start"});break}
+    case "stoCopy":{const it=itemById(UI.sto.it);if(!it)break;const g=UI.sto.g&&UI.sto.gFor===it.id?UI.sto.g:stoGen(it);const m={desc:g.desc,use:g.use.map(x=>"• "+x).join("\n"),faq:g.faq.map(([q,a])=>`س: ${q}\nج: ${a}`).join("\n"),seoT:g.seoT,seoD:g.seoD,all:stoText(g)+`\n\nعنوان قوقل: ${g.seoT}\nوصف قوقل: ${g.seoD}`};copyText(m[d.v]||"");const y=window.scrollY;stoMark(it.id);render();window.scrollTo(0,y);break}
+    case "stoAI":{const it=itemById(UI.sto.it);if(!it||!AI)break;const g0=stoGen(it);el.disabled=true;el.innerHTML=`<span class="spin"></span>`;let out="";
+      AI(`You write product page copy for an online store in ${CTRY().n} called "${S.biz.name}" (${bizLabel()}). Audience: ${AUD[sto().aud]}. Improve this draft in warm, natural Gulf Arabic. Keep every price, shipping, return and payment detail exactly. Do not invent ingredients, sizes, materials or claims, and never mention other brands. Reply with JSON only: {"desc":"3 to 5 short lines","use":["..."],"faq":[["question","answer"]],"seoT":"under 60 characters","seoD":"under 155 characters"}\n\n${JSON.stringify(g0)}`,{modelTier:"quick",onText:({text})=>{out=text}})
+      .then(()=>{let j=null;try{const m=out.match(/\{[\s\S]*\}/);j=m?JSON.parse(m[0]):null}catch(e){}if(j&&j.desc){UI.sto.g={desc:String(j.desc),use:(Array.isArray(j.use)?j.use:g0.use).map(String),faq:(Array.isArray(j.faq)?j.faq:g0.faq).filter(x=>x&&x[0]).map(x=>[String(x[0]),String(x[1]||"")]),seoT:String(j.seoT||g0.seoT),seoD:String(j.seoD||g0.seoD)};UI.sto.gFor=it.id;render()}else toast("ما ضبطت، جرّب مرة ثانية")})
+      .catch(e=>aiOff(e)).finally(()=>{if(el.isConnected){el.disabled=false;el.innerHTML=`${svg("spark")} اكتبها زبدة أحلى`}});break}
     case "planDone":{const t=today();if(!S.planDone||S.planDone.d!==t)S.planDone={d:t,k:[]};const i=S.planDone.k.indexOf(d.k);if(i>=0)S.planDone.k.splice(i,1);else S.planDone.k.push(d.k);commit([]);const T=planTasks();if(i<0&&T.every(x=>x.done)){zAdd({f:"z",mood:"proud",t:zPick(["خلّصت خطة اليوم كلها 👏 هذا الشغل ولا بلاش!","يومك كامل! 💪 بكرة أجهّز لك خطة جديدة"]),acts:[]})}render();break}
     case "zg":zGuess(+d.v);break;
     case "zAll":zAll();break;
@@ -3222,7 +3410,7 @@ function act(a,el){
     case "qsAdd":QS.q[d.id]=(QS.q[d.id]||0)+1;QS.total=null;drawQS();break;
     case "qsDec":QS.q[d.id]=(QS.q[d.id]||0)-1;if(QS.q[d.id]<=0)delete QS.q[d.id];QS.total=null;drawQS();break;
     case "qsPay":QS.pay=d.v;drawQS();break;
-    case "qsSave":if(qsReady()){const ds=qsDrafts();if(QS.pay==="platform"&&platKeys().some(linked)){QS=null;openReview(ds,{})}else addTxs(ds.map(x=>prepDraft(x)))}break;
+    case "qsSave":if(qsReady()){const ds=qsBasket();if(QS.pay==="platform"&&platKeys().some(linked)){QS=null;openReview(ds,{})}else{ds.forEach(d=>{prepDraft(d);S.invSeq=(S.invSeq||0)+1;d.inv=S.invSeq});addTxs([].concat(...ds.map(expandDraft)))}}break;
     case "qeCat":QE.cat=d.v;drawQE();break;
     case "qePay":QE.pay=d.v;drawQE();break;
     case "qeSave":if(qeReady()){const vt=vatOn()?catBy(QE.cat)[4]:undefined;addTxs([prepDraft(blankDraft({kind:"expense",cat:QE.cat,amount:r2(+QE.amount),pay:QE.pay,party:QE.party.trim()||null,vat:vt,src:"quick"}))])}break;
@@ -3280,9 +3468,19 @@ function act(a,el){
     case "stVat":el.setAttribute("aria-checked",el.getAttribute("aria-checked")!=="true");break;
     case "stSave":{S.biz.name=($("#stName").value||"").trim()||S.biz.name;S.biz.type=$("#stType").value;S.biz.ch=$("#stCh").value;["VatNo","Cr","Phone","Addr"].forEach(k=>{const e=$("#st"+k);if(e)S.biz[k==="VatNo"?"vatNo":k.toLowerCase()]=e.value.trim()});{const caps={};document.querySelectorAll("[data-a=stCap]").forEach(b=>caps[b.dataset.k]=b.getAttribute("aria-checked")==="true");if(Object.keys(caps).length)S.biz.caps=caps}S.biz.country=$("#stCountry").value;{const g=+$("#stGoal").value;S.biz.goal=g>0?r2(g):0}const vs=document.querySelector("[data-a=stVat]");S.biz.vat=vs?vs.getAttribute("aria-checked")==="true":false;const od=$("#op_date").value;if(od&&od<=today())S.opening.date=od;["cash","bank","wallet","platform"].forEach(k=>{const e=$("#op_"+k);if(e)S.opening[k]=r2(+e.value||0)});applyCountry();logAct("عدّل الإعدادات");commit([]);closeSheet();render();toast("انحفظ ✓");break}
     case "wsSheet":wsSheet();break;
+    case "wsCopy":wsCopySheet();break;
+    case "wsCopyDo":wsCopyDo();break;
+    case "xfer":xferSheet();break;
+    case "xfTo":UI.xf.to=d.v;drawXfer();break;
+    case "xfFrom":UI.xf.from=d.v;drawXfer();break;
+    case "xfInto":UI.xf.into=d.v;drawXfer();break;
+    case "xfDo":xferDo();break;
+    case "wsAlert":{useWs(d.id);UI.tab="home";saveLocal();render();act("alert",{dataset:{k:d.k,v:d.v},closest:()=>null});break}
+    case "rvWs":{const text=RV.text;closeSheet();useWs(d.id);UI.tab="home";saveLocal();render();toast("فتحت «"+S.biz.name+"»");textDrafts(text).then(({drafts,src})=>openReview(mergeBaskets(drafts),{text,src}));break}
     case "useWs":useWs(d.id);closeSheet();UI.tab="home";UI.month=thisMonth();UI.tip=0;saveLocal();render();window.scrollTo(0,0);toast("فتحت «"+S.biz.name+"»");break;
     case "order":orderSheet(d.id);break;
     case "ostep":{const o=S.orders.find(x=>x.id===d.id);o.status=d.v;o.history.push([d.v,Date.now()]);if(d.v==="shipped"&&!o.awb)o.awb="AWB"+String(Math.floor(1e8+Math.random()*8e8));logAct(`حدّث الطلب #${o.no}: ${OST[d.v][0]}`);commit([]);orderSheet(o.id);render();break}
+    case "orefuse":{const o=S.orders.find(x=>x.id===d.id);if(el.dataset.sure){returnOrder(o);o.refused=true;logAct(`العميل رفض استلام الطلب #${o.no}`);commit([]);render()}else{el.dataset.sure="1";el.innerHTML="متأكد؟ رجّع البضاعة"}break}
     case "oret":{const o=S.orders.find(x=>x.id===d.id);if(el.dataset.sure){returnOrder(o)}else{el.dataset.sure="1";el.innerHTML="متأكد؟ سجّل المرتجع"}break}
     case "omsg":{const o=S.orders.find(x=>x.id===d.id);copySheet("رسالة للعميل",orderMsg(o),"انسخها وأرسلها للعميل.");break}
     case "pull":pullOrders();break;
@@ -3358,6 +3556,8 @@ document.addEventListener("input",e=>{
   if(el.id==="qeAmt"&&QE){QE.amount=el.value;const b=document.querySelector("[data-a=qeSave]");if(b)b.disabled=!qeReady();return}
   if(el.id==="qeParty"&&QE){QE.party=el.value;const b=document.querySelector("[data-a=qeSave]");if(b)b.disabled=!qeReady();return}
   if(el.id==="iePrice"){ieCost();return}
+  if(["stoDays","stoFee","stoFree","stoRet"].includes(el.id)){const s=sto();const v=el.value.trim();if(el.id==="stoDays")s.days=v;else if(el.id==="stoRet")s.ret=v;else s[el.id==="stoFee"?"fee":"free"]=v===""?null:+v;UI.sto.g=null;clearTimeout(inT);inT=setTimeout(()=>{commit([]);const it=itemById(UI.sto.it);if(!it)return;const g=stoGen(it);[["desc",g.desc],["use",g.use.map(x=>"• "+x).join("\n")],["faq",g.faq.map(([q,a])=>`س: ${q}\nج: ${a}`).join("\n")],["seoT",g.seoT],["seoD",g.seoD]].forEach(([id,t])=>{const e=$("#sto_"+id);if(e)e.innerHTML=esc(t).replace(/\n/g,"<br>")})},350);return}
+  if(el.id==="xfAmt"&&UI.xf){UI.xf.amt=el.value;const b=document.querySelector("[data-a=xfDo]");if(b)b.disabled=!(+el.value>0);const fl=el.closest(".field");if(fl)fl.classList.toggle("need",!(+el.value>0));return}
   if(el.id==="stuCap"){UI.st.cap=el.value;UI.st.capFor=UI.st.i;return}
   if(el.id==="bkHandle"||el.id==="bkPhone"){S.brand=S.brand||{};if(el.id==="bkHandle")S.brand.handle=el.value.trim();else S.biz.phone=el.value.trim();clearTimeout(inT);inT=setTimeout(()=>{commit([]);studioMount()},400);return}
   if(el.id==="spVat"||el.id==="spIban"){supChecks();return}
@@ -3486,6 +3686,9 @@ function seedDemo(){
   }
   [["مها السالم","+966561230011","الرياض","الربيع","","RRBA1203",2],["ناصر القحطاني","+966561230022","جدة","السلامة","","JSLA4410",3],["جواهر العمري","+966561230033","الدمام","الشاطئ","","DSHA8812",4]].forEach(([n,ph,c,di,stt,nat,k])=>{const cu={id:"cl"+k,name:n,phone:ph,city:c,district:di,street:stt,nat,notes:""};ST.customers.push(cu);const d=addDays(start,k);const amt=318;const t=add(ST,d,{kind:"sale",item:"s_mamoul",qty:2,amount:amt,pay:"platform",ch:"salla",party:n,src:"platform"});if(t){const o=order(ST,"salla",d,cu,[{id:"s_mamoul",q:2,amt}],[t.id],true);t.ord=o.id}});
   const ws=addDays(T0,-36);if(ws>=start&&sP.p_musk>=24){add(P,ws,{kind:"sale",item:"p_musk",qty:24,un:"درزن",uq:2,amount:960,pay:"credit",party:"صالون لمسة"});sP.p_musk-=24}
+  ST.store={free:299,fee:25,days:"2-5",ret:"استرجاع خلال 7 أيام لو المنتج ما انفتح",aud:"all",pays:["mada","card","apple","tabby","tamara","cod"],chk:{},gen:{}};
+  P.store={free:299,fee:30,days:"4-12",ret:"",aud:"f",pays:["mada","apple","tabby","cod"],chk:{},gen:{}};
+  P.orders.filter(o=>!o.paid&&o.status==="delivered").slice(0,2).forEach(o=>{const d=addDays(o.date,3)>T0?T0:addDays(o.date,3);o.lines.forEach(l=>{const t=add(P,d,{kind:"ret",amount:l.amt,pay:"platform",ch:o.plat,item:l.id,qty:l.q,party:o.cust.name,src:"order",ord:o.id});if(t)o.txIds.push(t.id)});o.status="returned";o.refused=true;o.history.push(["returned",new Date(d+"T15:00:00").getTime()])});
   [ST,F,P].forEach(w=>{const by={};w.tx.forEach(t=>{(by[t.date]=by[t.date]||[]).push(t)});Object.entries(by).forEach(([d,l])=>{const st0=d===T0?Date.now()-4*3600e3:new Date(d+"T09:00:00").getTime(),sp=d===T0?4*3600e3:12*3600e3;l.sort((a,z)=>a.ts-z.ts).forEach((t,k)=>{t.ts=st0+Math.round((k+1)/(l.length+1)*sp)})})});
   const A2=blankAcct();[ST,F,P].forEach(w=>{A2.ws[w.id]=w;A2.order.push(w.id)});A2.cur=ST.id;A2.updated=Date.now();
   return A2;
@@ -3497,6 +3700,7 @@ if(A){const id=A.cur&&A.ws[A.cur]?A.cur:A.order[0];if(id&&A.ws[id])useWs(id);els
 render();
 initAI();initCloud();
 </script>
+
 
 </body>
 </html>
